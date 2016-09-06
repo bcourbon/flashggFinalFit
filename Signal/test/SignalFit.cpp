@@ -47,8 +47,8 @@ string datfilename_;
 string systfilename_;
 string plotDir_;
 bool skipPlots_=false;
-int mhLow_=115;
-int mhHigh_=135;
+int mhLow_=70;
+int mhHigh_=110;
 int nCats_;
 float constraintValue_;
 int constraintValueMass_;
@@ -110,20 +110,20 @@ void OptionParser(int argc, char *argv[]){
 		("infilename,i", po::value<string>(&filenameStr_),                                           			"Input file name")
 		("outfilename,o", po::value<string>(&outfilename_)->default_value("CMS-HGG_sigfit.root"), 			"Output file name")
 		("merge,m", po::value<string>(&mergefilename_)->default_value(""),                               	        "Merge the output with the given workspace")
-		("datfilename,d", po::value<string>(&datfilename_)->default_value("dat/newConfig.dat"),      			"Configuration file")
-		("systfilename,s", po::value<string>(&systfilename_)->default_value("dat/photonCatSyst.dat"),		"Systematic model numbers")
-		("plotDir,p", po::value<string>(&plotDir_)->default_value("plots"),						"Put plots in this directory")
+		("datfilename,d", po::value<string>(&datfilename_)->default_value("dat/newConfigLowMassDummy.dat"),      			"Configuration file")
+		("systfilename,s", po::value<string>(&systfilename_)->default_value("dat/photonCatSystLowMassMoriond.dat"),		"Systematic model numbers")
+		("plotDir,p", po::value<string>(&plotDir_)->default_value("plotsSignalLowMass"),						"Put plots in this directory")
 		("skipPlots", 																																									"Do not make any plots")
-		("mhLow,L", po::value<int>(&mhLow_)->default_value(115),                                  			"Low mass point")
+		("mhLow,L", po::value<int>(&mhLow_)->default_value(70),                                  			"Low mass point")
 		("nThreads,t", po::value<int>(&ncpu_)->default_value(ncpu_),                               			"Number of threads to be used for the fits")
-		("mhHigh,H", po::value<int>(&mhHigh_)->default_value(135),                                			"High mass point")
+		("mhHigh,H", po::value<int>(&mhHigh_)->default_value(110),                                			"High mass point")
 		// ("nCats,n", po::value<int>(&nCats_)->default_value(9),                                    			"Number of total categories")
 		("constraintValue,C", po::value<float>(&constraintValue_)->default_value(0.1),            			"Constraint value")
-		("constraintValueMass,M", po::value<int>(&constraintValueMass_)->default_value(125),                        "Constraint value mass")
+		("constraintValueMass,M", po::value<int>(&constraintValueMass_)->default_value(100),                        "Constraint value mass")
 		("pdfWeights", po::value<int>(&pdfWeights_)->default_value(0),                        "If pdf systematics should be considered, say how many (default 0 = off)")
 		("skipSecondaryModels",                                                                   			"Turn off creation of all additional models")
 		("doQuadraticSigmaSum",  										        "Add sigma systematic terms in quadrature")
-		("procs", po::value<string>(&procStr_)->default_value("ggh,vbf,wh,zh,tth"),					"Processes (comma sep)")
+		("procs", po::value<string>(&procStr_)->default_value("ggh,vbf"),					"Processes (comma sep)")
 		("skipMasses", po::value<string>(&massesToSkip_)->default_value(""),					"Skip these mass points - used eg for the 7TeV where there's no mc at 145")
 		("runInitialFitsOnly",                                                                                      "Just fit gaussians - no interpolation, no systematics - useful for testing nGaussians")
 		("cloneFits", po::value<string>(&cloneFitFile_),															"Do not redo the fits but load the fit parameters from this workspace. Pass as fileName:wsName.")
@@ -131,11 +131,11 @@ void OptionParser(int argc, char *argv[]){
 		("verbose,v", po::value<int>(&verbose_)->default_value(0),                                			"Verbosity level: 0 (lowest) - 3 (highest)")
 		("isFlashgg",	po::value<bool>(&isFlashgg_)->default_value(true),														"Use flashgg format")
 		("binnedFit",	po::value<bool>(&binnedFit_)->default_value(true),														"Binned Signal fit")
-		("nBins",	po::value<int>(&nBins_)->default_value(80),														"If using binned signal for fit, how many bins in 100-180?")
+		("nBins",	po::value<int>(&nBins_)->default_value(110),														"If using binned signal for fit, how many bins in 100-180?")
 		("checkYields",	po::value<bool>(&checkYields_)->default_value(false),														"Use flashgg format (default false)")
       ("split", po::value<string>(&splitStr_)->default_value(""), "do just one tag,proc ")
 		("changeIntLumi",	po::value<float>(&newIntLumi_)->default_value(0),														"If you want to specify an intLumi other than the one in the file. The event weights and rooRealVar IntLumi are both changed accordingly. (Specify new intlumi in fb^{-1})")
-		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,UntaggedTag_3,UntaggedTag_4,VBFTag_0,VBFTag_1,VBFTag_2,TTHHadronicTag,TTHLeptonicTag,VHHadronicTag,VHTightTag,VHLooseTag,VHEtTag"),       "Flashgg categories if used")
+		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,VBFTag_0"),       "Flashgg categories if used")
 		;                                                                                             		
 	po::options_description desc("Allowed options");
 	desc.add(desc1);
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]){
   // reference details for low stats cats
   // need to make this configurable ?! -LC
   referenceProc_="ggh";
-  referenceProcTTH_="tth";
+  //referenceProcTTH_="tth";
   referenceTagWV_="UntaggedTag_2"; // histest stats WV is ggh Untagged 3. 
   referenceTagRV_="UntaggedTag_2"; // fairly low resolution tag even for ggh, more approprioate as te default than re-using the original tag.
   // are WV which needs to borrow should be taken from here
@@ -407,6 +407,7 @@ int main(int argc, char *argv[]){
 	mass_->setUnit("GeV");
 	dZ_ = (RooRealVar*)inWS->var("dZ");
   intLumi_ = (RooRealVar*)inWS->var("IntLumi");
+  //IntLumi_ = 2610
   originalIntLumi_ =(intLumi_->getVal());// specify in 1/pb
   newIntLumi_ = newIntLumi_*1000; // specify in 1/pb instead of 1/fb.
   intLumi_->setVal(newIntLumi_); 
@@ -565,7 +566,7 @@ int main(int argc, char *argv[]){
 
     bool isProblemCategory =false;
 
-    for (int mh=mhLow_; mh<=mhHigh_; mh+=5){
+    for (int mh=mhLow_; mh<=mhHigh_; mh+=10){
       if (skipMass(mh)) continue;
       RooDataSet *dataRV; 
       RooDataSet *dataWV; 
@@ -595,7 +596,7 @@ int main(int argc, char *argv[]){
         
         // if there are few atcual entries or if there is an  overall negative sum of weights...
         // or if it was specified that one should use the replacement dataset, then need to replace!
-        if (nEntriesRV < 200 || sEntriesRV < 0 || ( userSkipRV)){
+        if (nEntriesRV < 0 || sEntriesRV < 0 || ( userSkipRV)){ //Low-mass
           std::cout << "[INFO] too few entries to use for fits in RV! nEntries " << nEntriesRV << " sumEntries " << sEntriesRV << "userSkipRV " << userSkipRV<< std::endl;
           isProblemCategory=true;
           
@@ -633,7 +634,7 @@ int main(int argc, char *argv[]){
       
         // if there are few atcual entries or if there is an  overall negative sum of weights...
         // or if it was specified that one should use the replacement dataset, then need to replace!
-        if (nEntriesWV < 200 || sEntriesWV < 0 || (userSkipWV)){
+        if (nEntriesWV < 0 || sEntriesWV < 0 || (userSkipWV)){ //Low-mass
           std::cout << "[INFO] too few entries to use for fits in WV! nEntries " << nEntriesWV << " sumEntries " << sEntriesWV << "userSkipWV " << userSkipWV << std::endl;
         
           //things are simpler this time, since almost all WV are bad aside from ggh-UntaggedTag3
@@ -818,7 +819,8 @@ int main(int argc, char *argv[]){
     
     // if we are doing jobs for each proc/tag, want to do the split.
     bool split =0;
-    if (split_.size() > 0) split=1; 
+
+    //if (split_.size() > 0) split=1; 
     packager.packageOutput(/*split*/split, /*proc*/split_[0], /*tag*/ split_[1] );
     sw.Stop();
     cout << "[INFO] Combination complete." << endl;

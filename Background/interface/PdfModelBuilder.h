@@ -66,6 +66,14 @@ class PdfModelBuilder {
     RooAbsPdf* getKeysPdf(string prefix);
     RooAbsPdf* getPdfFromFile(string &prefix);
 
+    //low-mass
+
+    RooAbsPdf* getDoubleCB(string prefix);
+    RooAbsPdf* getDoubleCB(string prefix, float alphacb1, float alphacb2);
+    RooAbsPdf* getDoubleCBplusContinuum(RooAbsPdf *pdfContinuum, RooAbsPdf *pdfZpeak, string name);
+    RooAbsPdf* fixDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string name);
+
+
   private:
    
     vector<string> recognisedPdfTypes;
@@ -101,6 +109,8 @@ class PdfModelBuilder {
     RooWorkspace *wsCache;
 
     int verbosity;
+
+    bool forceFracUnity_; //FAN
 
 };
 #endif

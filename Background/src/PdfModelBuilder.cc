@@ -27,6 +27,12 @@
 #include "HiggsAnalysis/CombinedLimit/interface/HGGRooPdfs.h"
 #include "HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
 
+#include "RooExponential.h"
+#include "RooPowerLaw.h"
+#include "RooPowerLawSum.h"
+
+#include "HiggsAnalysis/GBRLikelihood/interface/RooDoubleCBFast.h" 
+
 using namespace std;
 using namespace RooFit;
 using namespace boost;
@@ -137,7 +143,7 @@ RooAbsPdf* PdfModelBuilder::getBernstein(string prefix, int order){
 RooAbsPdf* PdfModelBuilder::getPowerLawGeneric(string prefix, int order){
   
   if (order%2==0){
-    cerr << "ERROR -- addPowerLaw -- only odd number of params allowed" << endl;
+    cerr << "ERROR -- addPowerLaw -- only odd number of params allowed" << std::endl;
     return NULL;
   }
   else {
@@ -171,7 +177,7 @@ RooAbsPdf* PdfModelBuilder::getPowerLawGeneric(string prefix, int order){
         dependents->add(*params[pname]);
       }
     }
-    cout << "FORM -- " << formula << endl;
+    std::cout << "FORM -- " << formula << std::endl;
     dependents->Print("v");
     RooGenericPdf *pow = new RooGenericPdf(prefix.c_str(),prefix.c_str(),formula.c_str(),*dependents);
     pow->Print("v");
@@ -226,7 +232,7 @@ RooAbsPdf* PdfModelBuilder::getExponential(string prefix, int order){
 RooAbsPdf* PdfModelBuilder::getPowerLawSingle(string prefix, int order){
   
   if (order%2==0){
-    cerr << "ERROR -- addPowerLaw -- only odd number of params allowed" << endl;
+    cerr << "ERROR -- addPowerLaw -- only odd number of params allowed" << std::endl;
     return NULL;
   }
   else {
@@ -249,10 +255,10 @@ RooAbsPdf* PdfModelBuilder::getPowerLawSingle(string prefix, int order){
       utilities.insert(pair<string,RooAbsPdf*>(ename, new RooPower(ename.c_str(),ename.c_str(),*obs_var,*params[name])));
       pows->add(*utilities[ename]);
     }
-    //cout << "RooArgLists..." << endl;
+    //std::cout << "RooArgLists..." << std::endl;
     //fracs->Print("v");
     //pows->Print("v");
-    //cout << "Function..." << endl;
+    //std::cout << "Function..." << std::endl;
     RooAbsPdf *pow = new RooAddPdf(prefix.c_str(),prefix.c_str(),*pows,*fracs,true); 
     //pow->Print("v");
     return pow;
@@ -296,7 +302,7 @@ RooAbsPdf* PdfModelBuilder::getLaurentSeries(string prefix, int order){
 
 RooAbsPdf* PdfModelBuilder::getKeysPdf(string prefix){
   if (!keysPdfAttributesSet){
-    cerr << "ERROR -- keysPdf attributes not set" << endl;
+    cerr << "ERROR -- keysPdf attributes not set" << std::endl;
     exit(1);
   }
   return new RooKeysPdf(prefix.c_str(),prefix.c_str(),*obs_var,*keysPdfData,RooKeysPdf::MirrorBoth,keysPdfRho);
@@ -312,17 +318,17 @@ RooAbsPdf* PdfModelBuilder::getPdfFromFile(string &prefix){
 
   TFile *tempFile = TFile::Open(fname.c_str());
   if (!tempFile){
-    cerr << "PdfModelBuilder::getPdfFromFile -- file not found " << fname << endl;
+    cerr << "PdfModelBuilder::getPdfFromFile -- file not found " << fname << std::endl;
     assert(0);
   }
   RooWorkspace *tempWS = (RooWorkspace*)tempFile->Get(wsname.c_str());
   if (!tempWS){
-    cerr << "PdfModelBuilder::getPdfFromFile -- workspace not found " << wsname << endl;
+    cerr << "PdfModelBuilder::getPdfFromFile -- workspace not found " << wsname << std::endl;
     assert(0);
   }
   RooAbsPdf *tempPdf = (RooAbsPdf*)tempWS->pdf(pdfname.c_str());
   if (!tempPdf){
-    cerr << "PdfModelBuilder::getPdfFromFile -- pdf not found " << pdfname << endl;
+    cerr << "PdfModelBuilder::getPdfFromFile -- pdf not found " << pdfname << std::endl;
     assert(0);
   }
   prefix = pdfname;
@@ -335,7 +341,7 @@ RooAbsPdf* PdfModelBuilder::getPdfFromFile(string &prefix){
 RooAbsPdf* PdfModelBuilder::getExponentialSingle(string prefix, int order){
   
   if (order%2==0){
-    cerr << "ERROR -- addExponential -- only odd number of params allowed" << endl;
+    cerr << "ERROR -- addExponential -- only odd number of params allowed" << std::endl;
     return NULL;
   }
   else {
@@ -360,7 +366,7 @@ RooAbsPdf* PdfModelBuilder::getExponentialSingle(string prefix, int order){
     //exps->Print("v");
     RooAbsPdf *exp = new RooAddPdf(prefix.c_str(),prefix.c_str(),*exps,*fracs,true);
     //exp->Print("v");
-    cout << "--------------------------" << endl;
+    std::cout << "--------------------------" << std::endl;
     return exp;
     //bkgPdfs.insert(pair<string,RooAbsPdf*>(exp->GetName(),exp));
 
@@ -371,7 +377,7 @@ RooAbsPdf* PdfModelBuilder::getExponentialSingle(string prefix, int order){
 void PdfModelBuilder::addBkgPdf(string type, int nParams, string name, bool cache){
  
   if (!obs_var_set){
-    cerr << "ERROR -- obs Var has not been set!" << endl;
+    cerr << "ERROR -- obs Var has not been set!" << std::endl;
     exit(1);
   }
   bool found=false;
@@ -379,7 +385,7 @@ void PdfModelBuilder::addBkgPdf(string type, int nParams, string name, bool cach
     if (*it==type) found=true;
   }
   if (!found){
-    cerr << "Pdf of type " << type << " is not recognised!" << endl;
+    cerr << "Pdf of type " << type << " is not recognised!" << std::endl;
     exit(1);
   }
   RooAbsPdf *pdf=0;// avoid uninitialised variable error in cmssw  
@@ -425,11 +431,11 @@ void PdfModelBuilder::setSignalPdfFromMC(RooDataSet *data){
 void PdfModelBuilder::makeSBPdfs(bool cache){
   
   if (!signal_set){
-    cerr << "ERROR - no signal model set!" << endl;
+    cerr << "ERROR - no signal model set!" << std::endl;
     exit(1);
   }
   if (!signal_modifier_set){
-    cerr << "ERROR - no signal modifier set!" << endl;
+    cerr << "ERROR - no signal modifier set!" << std::endl;
     exit(1);
   }
  
@@ -501,9 +507,9 @@ void PdfModelBuilder::fitToData(RooAbsData *data, bool bkgOnly, bool cache, bool
   for (map<string,RooAbsPdf*>::iterator it=pdfSet.begin(); it!=pdfSet.end(); it++){
     RooFitResult *fit = (RooFitResult*)it->second->fitTo(*data,Save(true));
     if (print){
-      cout << "Fit Res Before: " << endl;
+      std::cout << "Fit Res Before: " << std::endl;
       fit->floatParsInit().Print("v");
-      cout << "Fit Res After: " << endl;
+      std::cout << "Fit Res After: " << std::endl;
       fit->floatParsFinal().Print("v");
     }
     if (cache) {
@@ -514,7 +520,7 @@ void PdfModelBuilder::fitToData(RooAbsData *data, bool bkgOnly, bool cache, bool
       wsCache->defineSet(Form("%s_observs",it->first.c_str()),*obs_var);
       wsCache->saveSnapshot(it->first.c_str(),*fitargs,true);
       if (print) {
-        cout << "Cached values: " << endl;
+        std::cout << "Cached values: " << std::endl;
         fitargs->Print("v");
       }
     }
@@ -573,7 +579,7 @@ void PdfModelBuilder::throwHybridToy(string postfix, int nEvents, vector<float> 
     }
   }
   if (dataForHybrid.size()!=functions.size()){
-    cerr << "One of the requested hybrid functions has not been found" << endl;
+    cerr << "One of the requested hybrid functions has not been found" << std::endl;
     exit(1);
   }
 
@@ -598,17 +604,17 @@ void PdfModelBuilder::throwToy(string postfix, int nEvents, bool bkgOnly, bool b
   map<string,RooAbsPdf*> pdfSet;
   if (bkgOnly) {
     pdfSet = bkgPdfs;
-    if (!bkgHasFit) cerr << "WARNING -- bkg has not been fit to data. Are you sure this is wise?" << endl; 
+    if (!bkgHasFit) cerr << "WARNING -- bkg has not been fit to data. Are you sure this is wise?" << std::endl; 
   }
   else {
     pdfSet = sbPdfs;
-    if (!sbHasFit) cerr << "WARNING -- sb has not been fit to data. Are you sure this is wise?" << endl;
+    if (!sbHasFit) cerr << "WARNING -- sb has not been fit to data. Are you sure this is wise?" << std::endl;
   }
   
   for (map<string,RooAbsPdf*>::iterator it=pdfSet.begin(); it!=pdfSet.end(); it++){
     if (cache) {
       wsCache->loadSnapshot(it->first.c_str());
-      cout << "Loaded snapshot, params at.." << endl;
+      std::cout << "Loaded snapshot, params at.." << std::endl;
       it->second->getVariables()->Print("v");
     }
     RooAbsData *toy;
@@ -669,7 +675,7 @@ void PdfModelBuilder::plotHybridToy(string prefix, int binning, vector<float> sw
       // check if in list of hybrid functions
       if (pdfIt->first.find(*func)!=string::npos) {
         for (map<string,RooAbsData*>::iterator toyIt = toyData.begin(); toyIt != toyData.end(); toyIt++){
-          //cout << "pdf: " << pdfIt->first << " - toy: " << toyIt->first << endl; 
+          //std::cout << "pdf: " << pdfIt->first << " - toy: " << toyIt->first << std::endl; 
           if (toyIt->first.find(pdfIt->first)!=string::npos){
             RooAbsData *data = toyIt->second->reduce(CutRange(cut_strings[i].c_str()));
             data->plotOn(plot,Binning(binning),MarkerColor(tempColors[i]),LineColor(tempColors[i]),CutRange(cut_strings[i].c_str()));
@@ -701,7 +707,7 @@ void PdfModelBuilder::plotToysWithPdfs(string prefix, int binning, bool bkgOnly)
   TCanvas *canv = new TCanvas();
   for (map<string,RooAbsPdf*>::iterator pdfIt = pdfSet.begin(); pdfIt != pdfSet.end(); pdfIt++){
     for (map<string,RooAbsData*>::iterator toyIt = toyData.begin(); toyIt != toyData.end(); toyIt++){
-      //cout << "pdf: " << pdfIt->first << " - toy: " << toyIt->first << endl; 
+      //std::cout << "pdf: " << pdfIt->first << " - toy: " << toyIt->first << std::endl; 
       if (toyIt->first.find(pdfIt->first)!=string::npos){
         RooPlot *plot = obs_var->frame();
         toyIt->second->plotOn(plot,Binning(binning));
@@ -730,3 +736,117 @@ void PdfModelBuilder::saveWorkspace(TFile *file){
   file->cd();
   wsCache->Write();
 }
+
+// Low-mass
+
+RooAbsPdf* PdfModelBuilder::getDoubleCB(string prefix){ //Float alpha 1,2
+
+    string name=Form("%s_DCB",prefix.c_str());
+
+    RooRealVar *nCB1 = new RooRealVar(Form("%s_nCB1",name.c_str()),Form("%s_nCB1",name.c_str()), 2.,0.01,5000.);
+    RooRealVar *nCB2 = new RooRealVar(Form("%s_nCB2",name.c_str()),Form("%s_nCB2",name.c_str()), 2.,0.01,5000);
+    RooRealVar *meanCB = new RooRealVar(Form("%s_mean",name.c_str()),Form("%s_mean",name.c_str()), 91.,80.,100.);
+    RooRealVar *sigmaCB = new RooRealVar(Form("%s_sigma",name.c_str()),Form("%s_sigma",name.c_str()), 2., 0.1, 20.);
+    RooRealVar *alphaCB1 = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), 1., 0., 2.);   
+    RooRealVar *alphaCB2 = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), 1., 0., 2.);   
+
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+
+
+    return temp;
+}
+
+RooAbsPdf* PdfModelBuilder::getDoubleCB(string prefix, float alphacb1, float alphacb2){  //Fix alpha 1,2
+
+    string name=Form("%s_DCB",prefix.c_str());
+
+    RooRealVar *nCB1 = new RooRealVar(Form("%s_nCB1",name.c_str()),Form("%s_nCB1",name.c_str()), 2.,0.01,5000.);
+    RooRealVar *nCB2 = new RooRealVar(Form("%s_nCB2",name.c_str()),Form("%s_nCB2",name.c_str()), 2.,0.01,5000);
+    RooRealVar *meanCB = new RooRealVar(Form("%s_mean",name.c_str()),Form("%s_mean",name.c_str()), 91.,80.,100.);
+    RooRealVar *sigmaCB = new RooRealVar(Form("%s_sigma",name.c_str()),Form("%s_sigma",name.c_str()), 2., 0.1, 20.);
+    RooRealVar *alphaCB1 = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), alphacb1);   
+    RooRealVar *alphaCB2 = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), alphacb2);   
+    alphaCB1->setConstant(true);
+    alphaCB2->setConstant(true);
+
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+
+
+    return temp;
+}
+
+
+RooAbsPdf* PdfModelBuilder::getDoubleCBplusContinuum(RooAbsPdf *pdfContinuum, RooAbsPdf *pdfZpeak, string name){
+ 
+  RooArgList *TotalBackground = new RooArgList();
+  RooArgList *coeffs = new RooArgList();
+ 
+  TotalBackground->add(*pdfContinuum);
+
+  TotalBackground->add(*pdfZpeak);
+
+  RooRealVar *frac = new RooRealVar(Form("%s_frac_sum1",name.c_str()),Form("%s_frac_sum1",name.c_str()),0.01,0.000001,0.999999);
+  //RooRealVar *frac = new RooRealVar(Form("%s_frac_sum1",name.c_str()),Form("%s_frac_sum1",name.c_str()),0.95,0.94,0.99);
+  coeffs->add(*frac);
+
+  forceFracUnity_=true;
+  if (forceFracUnity_) {
+    string formula="1.";
+    formula += Form("-@%d", 0);
+    RooFormulaVar *recFrac = new RooFormulaVar(Form("%s_frac_sum2",name.c_str()),Form("%s_frac_sum2",name.c_str()),formula.c_str(),*coeffs);
+    coeffs->add(*recFrac);
+  }
+
+ // RooRealVar *frac2 = new RooRealVar(Form("%s_frac_sum2",prefix.c_str()),Form("%s_frac_sum2",prefix.c_str()),0.01,0.000001,0.999999);
+ // coeffs->add(*frac2);
+
+  RooAbsPdf *temp = new RooAddPdf(name.c_str(),name.c_str(),*TotalBackground,*coeffs);
+
+  return temp;
+}
+
+
+RooAbsPdf* PdfModelBuilder::fixDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string name){
+
+    RooRealVar *meanCB=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_mean",name.c_str()));
+    RooRealVar *sigmaCB=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_sigma",name.c_str()));
+    RooRealVar *nCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_nCB1",name.c_str()));
+    RooRealVar *nCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_nCB2",name.c_str()));
+    RooRealVar *alphaCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB1",name.c_str()));
+    RooRealVar *alphaCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB2",name.c_str()));
+
+    meanCB->SetName(Form("%s_mean_old",name.c_str()));
+    sigmaCB->SetName(Form("%s_sigma_old",name.c_str()));
+    nCB1->SetName(Form("%s_nCB1_old",name.c_str()));
+    nCB2->SetName(Form("%s_nCB2_old",name.c_str()));
+    alphaCB1->SetName(Form("%s_alphaCB1_old",name.c_str()));
+    alphaCB2->SetName(Form("%s_alphaCB2_old",name.c_str()));
+
+    //The parameters will be constant in the background fits, then will float within their uncertaincy range in combine fits
+
+    RooRealVar *meanCB_newrange = new RooRealVar(Form("%s_mean",name.c_str()),Form("%s_mean",name.c_str()), meanCB->getValV(), meanCB->getValV()+meanCB->getErrorLo(),meanCB->getValV()+meanCB->getErrorHi());
+    RooRealVar *sigmaCB_newrange = new RooRealVar(Form("%s_sigma",name.c_str()),Form("%s_sigma",name.c_str()), sigmaCB->getValV(), sigmaCB->getValV()+sigmaCB->getErrorLo(),sigmaCB->getValV()+sigmaCB->getErrorHi());
+    RooRealVar *nCB1_newrange = new RooRealVar(Form("%s_nCB1",name.c_str()),Form("%s_nCB1",name.c_str()), nCB1->getValV(), nCB1->getValV()+nCB1->getErrorLo(),nCB1->getValV()+nCB1->getErrorHi());
+    RooRealVar *nCB2_newrange = new RooRealVar(Form("%s_nCB2",name.c_str()),Form("%s_nCB2",name.c_str()), nCB2->getValV(), nCB2->getValV()+nCB2->getErrorLo(),nCB2->getValV()+nCB2->getErrorHi());
+    RooRealVar *alphaCB1_newrange = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), alphaCB1->getValV());
+    RooRealVar *alphaCB2_newrange = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), alphaCB2->getValV());
+
+    meanCB_newrange->setConstant(true);
+    sigmaCB_newrange->setConstant(true);
+    nCB1_newrange->setConstant(true);
+    nCB2_newrange->setConstant(true);
+
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB_newrange,*sigmaCB_newrange, *alphaCB1_newrange, *nCB1_newrange, *alphaCB2_newrange, *nCB2_newrange);
+
+
+/*    meanCB->setConstant(true);
+    sigmaCB->setConstant(true);
+    nCB1->setConstant(true);
+    nCB2->setConstant(true);
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+*/
+    return temp;
+}
+
+
+

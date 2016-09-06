@@ -7,14 +7,14 @@ import HiggsAnalysis.CombinedLimit.PhysicsModel as models
 class dummy_options:
   def __init__(self):
     self.physModel = "HiggsAnalysis.CombinedLimit.PhysicsModel:floatingHiggsMass"
-    self.physOpt = ["higgsMassRange=90,250"]
+    self.physOpt = ["higgsMassRange=70,110"]
     self.bin = True
     self.fileName = "eh.root"
     self.cexpr = False
     self.out = "wsdefault"
     self.verbose = 0
-    self.mass = 125
-    self.funcXSext = "8TeV" #default?
+    self.mass = 100
+    self.funcXSext = "13TeV" #default?
 
 options=dummy_options()
 DC = Datacard()

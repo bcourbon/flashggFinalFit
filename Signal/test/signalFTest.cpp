@@ -59,15 +59,15 @@ void OptionParser(int argc, char *argv[]){
 		("help,h",                                                                                "Show help")
 		("infilename,i", po::value<string>(&filename_),                                           "Input file name")
 		("datfilename,d", po::value<string>(&datfilename_)->default_value("dat/config.dat"),      "Output configuration file")
-		("outdir,o", po::value<string>(&outdir_)->default_value("plots"),      "Output configuration file")
+		("outdir,o", po::value<string>(&outdir_)->default_value("plotsFtestLowMass"),      "Output configuration file")
 		("json_dict,j", po::value<string>(&json_dict_)->default_value(""),      "Output configuration file")
-		("mass,m", po::value<int>(&mass_)->default_value(125),                                    "Mass to run at")
-		("procs,p", po::value<string>(&procString_)->default_value("ggh,vbf,wh,zh,tth"),          "Processes")
+		("mass,m", po::value<int>(&mass_)->default_value(100),                                    "Mass to run at")
+		("procs,p", po::value<string>(&procString_)->default_value("ggh,vbf"),          "Processes")
 		("recursive",																																							"Recursive fraction")
 		("forceFracUnity",																																				"Force fraction unity")
 		("isFlashgg",	po::value<bool>(&isFlashgg_)->default_value(true),													"Use flashgg format")
 		("verbose",	po::value<bool>(&verbose_)->default_value(false),													"Use flashgg format")
-		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,UntaggedTag_3,UntaggedTag_4,VBFTag_0,VBFTag_1,VBFTag_2,TTHHadronicTag,TTHLeptonicTag,VHHadronicTag,VHTightTag,VHLooseTag,VHEtTag"),       "Flashgg category names to consider")
+		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,VBFTag_0"),       "Flashgg category names to consider")
 		("considerOnly", po::value<string>(&considerOnlyStr_)->default_value("All"), 
     "If you wish to only consider a subset cat in the list, list them as separated by commas. ")
 		;
@@ -86,7 +86,7 @@ void OptionParser(int argc, char *argv[]){
 RooAddPdf *buildSumOfGaussians(string name, RooRealVar *mass, RooRealVar *MH, int nGaussians){
   
   int mh=MH->getVal();
-  assert(mh==125);
+  assert(mh==100);
 	RooArgList *gaussians = new RooArgList();
 	RooArgList *coeffs = new RooArgList();
 	for (int g=0; g<nGaussians; g++){
@@ -176,8 +176,8 @@ int main(int argc, char *argv[]){
   // set range to be the same as SigfitPlots
   // want quite a large range otherwise don't
   // see crazy bins on the sides
-  float rangeLow = 115;
-  float rangeHigh = 135;
+  float rangeLow = 60;
+  float rangeHigh = 120;
 
   //want binning of \0.5GeV
   //int   nBins    = 2* int(rangeHigh -rangeLow); 
@@ -245,13 +245,13 @@ int main(int argc, char *argv[]){
 		vector<RooPlot*> tempWV;
      if(verbose_) std::cout << "[INFO] on proc " << procs[p] <<  " start looping through nCats " << ncats_ << " to book RooPlots " <<  std::endl;
 		for (int cat=0; cat<ncats_; cat++){
-			//RooPlot *plotRV = mass->frame(Range(mass_-10,mass_+10));
-			RooPlot *plotRV = mass->frame(Range(rangeLow,rangeHigh));
+			RooPlot *plotRV = mass->frame(Range(mass_-10,mass_+10));
+			//RooPlot *plotRV = mass->frame(Range(rangeLow,rangeHigh));
 			plotRV->SetTitle(
         Form("%s_%s_RV",procs[p].c_str(),flashggCats_[cat].c_str()));
 			tempRV.push_back(plotRV);
-			//RooPlot *plotWV = mass->frame(Range(mass_-10,mass_+10));
-			RooPlot *plotWV = mass->frame(Range(rangeLow,rangeHigh));
+			RooPlot *plotWV = mass->frame(Range(mass_-10,mass_+10));
+			//RooPlot *plotWV = mass->frame(Range(rangeLow,rangeHigh));
 			plotWV->SetTitle(
         Form("%s_%s_WV",procs[p].c_str(),flashggCats_[cat].c_str()));
 			tempWV.push_back(plotWV);
@@ -273,6 +273,7 @@ int main(int argc, char *argv[]){
 	colors.push_back(kRed);
 	colors.push_back(kGreen+2);
 	colors.push_back(kMagenta+1);
+	colors.push_back(kOrange+1+1);
 
   // continue flag is used to tell the script to ignore some
   // cases if we are using a considerOnly option.
@@ -398,7 +399,7 @@ int main(int argc, char *argv[]){
 			float rv_prob_limit =999;
 
 			dataRV->plotOn(plotsRV[proc][cat]);
-			while (prob<rv_prob_limit && order <5){ 
+			while (prob<rv_prob_limit && order <6){ 
 			  
         // build sum of gaussians of correct order
         RooAddPdf *pdf = buildSumOfGaussians(
@@ -477,7 +478,7 @@ int main(int argc, char *argv[]){
 			dataWV->plotOn(plotsWV[proc][cat]);
 
       //see comments in the RV section above.
-			while (prob<wv_prob_limit && order <4){ 
+			while (prob<wv_prob_limit && order <5){ 
 				RooAddPdf *pdf = buildSumOfGaussians(
         Form("cat%d_g%d",cat,order),mass,MH,order);
 				RooFitResult *fitRes = pdf->fitTo(*dataWV,
@@ -557,6 +558,9 @@ int main(int argc, char *argv[]){
 	TH1F *h4 = new TH1F("h4","",1,0,1);
 	h4->SetLineColor(colors[3]);
 	leg->AddEntry(h4,"4th order","L");
+	TH1F *h5 = new TH1F("h5","",1,0,1);
+	h5->SetLineColor(colors[4]);
+	leg->AddEntry(h5,"5th order","L");
   leg->SetShadowColor(kWhite);
 
   // make the canvas

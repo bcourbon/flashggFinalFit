@@ -68,7 +68,7 @@ int verbosity_;
 bool isFlashgg_;
 //RooWorkspace *inWS_;
 WSTFileWrapper * inWS_;
-RooRealVar *mass_ = new RooRealVar("CMS_hgg_mass","CMS_hgg_mass",125);
+RooRealVar *mass_ = new RooRealVar("CMS_hgg_mass","CMS_hgg_mass",100);
 
 void OptionParser(int argc, char *argv[]){
 
@@ -77,20 +77,20 @@ void OptionParser(int argc, char *argv[]){
 		("help,h",                                                                                					"Show help")
 		("infilenames,i", po::value<string>(&infilenamesStr_),                                           		"Input file names (comma sep)")
 		("outfilename,o", po::value<string>(&outfilename_)->default_value("dat/photonCatSyst.dat"), 				"Output file name")
-		("mh,m", po::value<int>(&mh_)->default_value(125),                                  								"Mass point")
+		("mh,m", po::value<int>(&mh_)->default_value(100),                                  								"Mass point")
 		("sqrtS", po::value<string>(&sqrtS_)->default_value("13"),																								"CoM energy")
-		("procs,p",po::value<string>(&procStr_)->default_value("ggh,vbf,wh,zh,tth"),												"Processes (comma sep)")
+		("procs,p",po::value<string>(&procStr_)->default_value("ggh,vbf"),												"Processes (comma sep)")
 		("plotDir,D", po::value<string>(&plotDir_)->default_value("plots"),																	"Out directory for plots")
 		("doPlots,P", po::value<bool>(&doPlots_)->default_value(false),																	"Plot variations")
 		("quadInterpolate",	po::value<int>(&quadInterpolate_)->default_value(0),														"Do a quadratic interpolation from this amount of sigma")
 		("isFlashgg",	po::value<bool>(&isFlashgg_)->default_value(true),														"Use flashgg format")
-		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,UntaggedTag_3,UntaggedTag_4,VBFTag_0,VBFTag_1,VBFTag_2,TTHHadronicTag,TTHLeptonicTag,VHHadronicTag,VHTightTag,VHLooseTag,VHEtTag"),       "Flashgg category names") 
+		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,VBFTag_0"),       "Flashgg category names") 
 		("verbosity,v", po::value<int>(&verbosity_)->default_value(0),                                  								"How much info to write (0 none, 1 some)")
 		;                                   
 
 	po::options_description backw_opts("Backwards compatibility options");
 	backw_opts.add_options()
-		("nCats,n", po::value<int>(&nCats_)->default_value(9),                                    					"Number of total categories (Now set automatically if using --isFlashgg 1)")
+		("nCats,n", po::value<int>(&nCats_)->default_value(4),                                    					"Number of total categories (Now set automatically if using --isFlashgg 1)")
 		;
 
 	po::options_description syst_opts("Systematics options");
@@ -156,6 +156,11 @@ double quadInterpolate(double C, double X1,double X2,double X3,double Y1,double 
 //effsigma function from Chris
 Double_t effSigma(TH1 * hist)
 {
+	cout<<"debug eff sigma "<<endl;
+	hist->Print();
+	TCanvas *can=new TCanvas;
+	hist->Draw();
+	can->SaveAs(Form("%s.png",hist->GetName()));
 
 	TAxis *xaxis = hist->GetXaxis();
 	Int_t nb = xaxis->GetNbins();
@@ -225,7 +230,9 @@ Double_t effSigma(TH1 * hist)
 		}  
 	}
 	if(ismin == nrms || ismin == -nrms) ierr=3;
-	if(ierr != 0) cout << "effsigma: Error of type " << ierr << endl;
+	if(ierr != 0) cout << "effsigma: Error of type " << ierr << " for histogram "<<hist->GetName()<<endl;
+
+
 
 	if(verbosity_)	std::cout<< "[INFO] " << (hist->GetName()) << " has effSigma " << widmin << std::endl;
   
@@ -343,9 +350,9 @@ vector<TH1F*> getHistograms(vector<TFile*> files, string name, string syst){
 
 		files[i]->cd();
 		if (isFlashgg_){
-			TH1F *up =  new TH1F(Form("%s_%sUp01sigma",name.c_str(),syst.c_str()),Form("%s_%sUp01sigma",name.c_str(),syst.c_str()),80,100,180);
-			TH1F *down = new TH1F(Form("%s_%sDown01sigma",name.c_str(),syst.c_str()),Form("%s_%sDown01sigma",name.c_str(),syst.c_str()),80,100,180);
-			TH1F *nominal = new TH1F((Form("%s_%s",name.c_str(),syst.c_str())),(Form("%s%s",name.c_str(),syst.c_str())),80,100,180);
+			TH1F *up =  new TH1F(Form("%s_%sUp01sigma",name.c_str(),syst.c_str()),Form("%s_%sUp01sigma",name.c_str(),syst.c_str()),60,60,120);
+			TH1F *down = new TH1F(Form("%s_%sDown01sigma",name.c_str(),syst.c_str()),Form("%s_%sDown01sigma",name.c_str(),syst.c_str()),60,60,120);
+			TH1F *nominal = new TH1F((Form("%s_%s",name.c_str(),syst.c_str())),(Form("%s%s",name.c_str(),syst.c_str())),60,60,120);
 			RooDataSet *rds_up = (RooDataSet*) inWS_->data((Form("%s_%sUp01sigma",name.c_str(),syst.c_str())));
 			RooDataSet *rds_down = (RooDataSet*) inWS_->data((Form("%s_%sDown01sigma",name.c_str(),syst.c_str())));
 			RooDataSet *rds_nom = (RooDataSet*) inWS_->data((Form("%s",name.c_str())));

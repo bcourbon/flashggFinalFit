@@ -1,0 +1,11 @@
+# proc cat nGausRV nGausWV
+ggh UntaggedTag_0 4 3
+ggh UntaggedTag_1 3 2
+ggh UntaggedTag_2 3 2
+ggh VBFTag_0 2 1
+
+vbf UntaggedTag_0 3 3
+vbf UntaggedTag_1 4 3
+vbf UntaggedTag_2 3 2
+vbf VBFTag_0 2 3
+

@@ -52,7 +52,7 @@ RooPowerLaw::RooPowerLaw(const RooPowerLaw& other, const char* name) :
 
 //_____________________________________________________________________________
 Double_t RooPowerLaw::evaluate() const{
-  //cout << "pow(x=" << x << ",c=" << c << ")=" << pow(x,c) << endl ;
+  //std::cout << "pow(x=" << x << ",c=" << c << ")=" << pow(x,c) << std::endl ;
   return pow(x,c);
 }
 
@@ -78,7 +78,7 @@ Double_t RooPowerLaw::analyticalIntegral(Int_t code, const char* rangeName) cons
 	ret =  ( pow(x.max(rangeName),c+1) - pow(x.min(rangeName),c+1) )/(c+1); 
       }
 
-      //cout << "Int_pow_dx(c=" << c << ", xmin=" << x.min(rangeName) << ", xmax=" << x.max(rangeName) << ")=" << ret << endl ;
+      //std::cout << "Int_pow_dx(c=" << c << ", xmin=" << x.min(rangeName) << ", xmax=" << x.max(rangeName) << ")=" << ret << std::endl ;
       return ret ;
     }
   }

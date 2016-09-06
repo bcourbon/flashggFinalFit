@@ -499,7 +499,7 @@ bool FinalModelConstruction::skipMass(int mh){
 
 vector<int> FinalModelConstruction::getAllMH(){
   vector<int> result;
-  for (int m=mhLow_; m<=mhHigh_; m+=5){
+  for (int m=mhLow_; m<=mhHigh_; m+=10){
 		if (skipMass(m)) continue;
     if (verbosity_>=1) cout << "[INFO] FinalModelConstruction - Adding mass: " << m << endl;
     result.push_back(m);
@@ -536,7 +536,7 @@ void FinalModelConstruction::getRvFractionFunc(string name){
   assert(allMH_.size()==wvDatasets.size());
   vector<double> mhValues, rvFracValues;
 
-  TF1 *pol = new TF1("pol","pol1",120,130); // set to straight line fit for RV fraction
+  TF1 *pol = new TF1("pol","pol1",70,110); // set to straight line fit for RV fraction
   TGraph *temp = new TGraph();
 
   for (unsigned int i=0; i<allMH_.size(); i++){
@@ -568,7 +568,7 @@ void FinalModelConstruction::getRvFractionFunc(string name){
   vector < RooAbsReal *> rvFrac_vect; 
   int point =0;
   TGraph *  rvFracGraph = new TGraph();
-  for (int m =120; m<131; m++){
+  for (int m =70; m<111; m++){
     MH->setVal(m);
     if(verbosity_) std::cout << " [INFO] Interpolation of  rvFraction  m = " << m << " , rvFrac " << rvFracFunc->getVal() << std::endl;
     rvFracGraph->SetPoint(point,m,rvFracFunc->getVal());
@@ -582,7 +582,7 @@ void FinalModelConstruction::getRvFractionFunc(string name){
   pt->SetTextSize(0.045);
   pt->AddText(Form("%s %s RV Fraction",proc_.c_str(),cat_.c_str()));
   MG_rvFrac->Draw("ALP");
-  pt->Draw();
+  //pt->Draw();
   c->SaveAs(Form("%s/%s_%s_rvFrac_debug.pdf",outDir_.c_str(),proc_.c_str(),cat_.c_str()));
 	
   // secondary models... 
@@ -947,7 +947,7 @@ vector<RooAddPdf*> FinalModelConstruction::buildPdf(string name, int nGaussians,
     legsigma->AddEntry(sigmaGraphs[g],sigmaGraphs[g]->GetName(),"lep");
     
     paramDump_  <<proc_ <<"_"<< cat_ << "_" << rvwv<< " dm" << g ;
-    for (int m =120; m<131; m++){
+    for (int m =70; m<111; m++){
     bool print = (m==120 || m==125 || m==130);
       MH->setVal(m);
       if(verbosity_) std::cout << "[INFO] interpolation of gaussian  " << g << " at mH = " << m << " , dm " << dm_vect[g]->getVal() << std::endl;
@@ -959,7 +959,7 @@ vector<RooAddPdf*> FinalModelConstruction::buildPdf(string name, int nGaussians,
 
     point=0;
     paramDump_  <<proc_ <<"_"<< cat_ << "_" << rvwv<< " sigma" << g ;
-    for (int m =120; m<131; m++){
+    for (int m =70; m<111; m++){
     bool print = (m==120 || m==125 || m==130);
       MH->setVal(m);
       if(verbosity_) std::cout << "[INFO] interpolation of gaussian  " << g << " at mH = " << m << " , sigma " << sigma_vect[g]->getVal() << std::endl;
@@ -972,7 +972,7 @@ vector<RooAddPdf*> FinalModelConstruction::buildPdf(string name, int nGaussians,
 
     point=0;
     if (g>0) paramDump_  <<proc_ <<"_"<< cat_ << "_" << rvwv<< "coeff" << (g-1) ;
-    for (int m =120; m<131; m++){
+    for (int m =70; m<111; m++){
     bool print = (m==120 || m==125 || m==130);
       MH->setVal(m);
       if (g>0){
@@ -1098,14 +1098,14 @@ void FinalModelConstruction::plotPdf(string outDir){
   system(Form("mkdir -p %s",outDir.c_str()));
   
   TCanvas *canv = new TCanvas();
-  RooPlot *dataPlot = mass->frame(Title(Form("%s_%s",proc_.c_str(),catname.c_str())),Range(110,140));
+  RooPlot *dataPlot = mass->frame(Title(Form("%s_%s",proc_.c_str(),catname.c_str())),Range(65,120));
   TPaveText *pt = new TPaveText(.7,.5,.95,.8,"NDC");
   //TH1F * dummy = new TH1F("d","d",1,0,1);
   //dummy->SetMarkerColor(kWhite);
   //pt->AddText(Form("Fit using PDF from :"); 
   for (unsigned int i=0; i<allMH_.size(); i++){
     int mh=allMH_[i];
-    stdDatasets[mh]->plotOn(dataPlot,Binning(160),MarkerColor(kBlue+10*i));
+    stdDatasets[mh]->plotOn(dataPlot,Binning(110),MarkerColor(kBlue+10*i));
     MH->setVal(mh);
     extendPdf->plotOn(dataPlot,LineColor(kBlue-1+10*i));
     pt->AddText(Form("RV %d: %s",mh,rvFITDatasets[mh]->GetName())); 
@@ -1114,16 +1114,17 @@ void FinalModelConstruction::plotPdf(string outDir){
   }
   dataPlot->SetTitle(Form("combined RV WV fits for %s %s",proc_.c_str(),catname.c_str()));
   dataPlot->Draw();
-  pt->Draw("same");
+  //pt->Draw("same");
   canv->Print(Form("%s/%s_%s_fits.pdf",outDir.c_str(),proc_.c_str(),catname.c_str()));
   canv->Print(Form("%s/%s_%s_fits.png",outDir.c_str(),proc_.c_str(),catname.c_str()));
   
-  RooPlot *pdfPlot = mass->frame(Title(Form("%s_%s",proc_.c_str(),catname.c_str())),Range(100,160));
-	pdfPlot->GetYaxis()->SetTitle(Form("Pdf projection per %2.1f GeV",(mass->getMax()-mass->getMin())/160.));
+  RooPlot *pdfPlot = mass->frame(Title(Form("%s_%s",proc_.c_str(),catname.c_str())),Range(65,120));
+	pdfPlot->GetYaxis()->SetTitle(Form("Pdf projection per %2.1f GeV",(mass->getMax()-mass->getMin())/110.));
   for (int mh=mhLow_; mh<=mhHigh_; mh++){
     MH->setVal(mh);
 		// to get correct normlization need to manipulate with bins and range
-    extendPdf->plotOn(pdfPlot,Normalization(mass->getBins()/160.*(mass->getMax()-mass->getMin())/60.,RooAbsReal::RelativeExpected));
+    extendPdf->plotOn(pdfPlot,Normalization(mass->getBins()/110.*(mass->getMax()-mass->getMin())/55.,RooAbsReal::RelativeExpected));
+    //extendPdf->plotOn(pdfPlot);
   }
   string sim="Simulation Preliminary";
   pdfPlot->Draw();
@@ -1131,7 +1132,7 @@ void FinalModelConstruction::plotPdf(string outDir){
   TLatex *latex = new TLatex();	
   latex->SetTextSize(0.045);
   latex->SetNDC();
-  latex->DrawLatex(0.6,0.78,Form("#splitline{%s}{%s}",proc_.c_str(),catname.c_str()));
+  //latex->DrawLatex(0.6,0.78,Form("#splitline{%s}{%s}",proc_.c_str(),catname.c_str()));
   canv->Print(Form("%s/%s_%s_interp.pdf",outDir.c_str(),proc_.c_str(),catname.c_str()));
   canv->Print(Form("%s/%s_%s_interp.png",outDir.c_str(),proc_.c_str(),catname.c_str()));
   delete canv;
@@ -1204,7 +1205,7 @@ void FinalModelConstruction::getNormalization(){
   if (isProblemCategory_) fitToConstant=1;
   TF1 *pol;
   if (!fitToConstant){
-    TF1 *pol2= new TF1("pol","pol2",120,130); // set to y= ax^2+bx+c
+    TF1 *pol2= new TF1("pol","pol2",70,110); // set to y= ax^2+bx+c
     pol=pol2;
     //temp->Fit(pol2,"EMFEX0") :
     //temp->Fit(pol2,"QEMFEX0");
@@ -1214,13 +1215,13 @@ void FinalModelConstruction::getNormalization(){
     float a=pol->GetParameter(2) ;// y = [0] + [1]*x + [2]*x*x
     float parabola_extremum_x = -b/(2*a);
     if (verbosity_>1) std::cout << "[INFO] e*a fit to pol2 has vertex at " <<  parabola_extremum_x << std::endl;
-    if ( parabola_extremum_x  > 120. && parabola_extremum_x < 130){
-      TF1 *pol1= new TF1("pol","pol1",120,130); // set to constant
+    if ( parabola_extremum_x  > 70. && parabola_extremum_x < 110){
+      TF1 *pol1= new TF1("pol","pol1",70,110); // set to constant
       pol=pol1;
       temp->Fit(pol);
     }
   } else {
-    TF1 *pol0= new TF1("pol","pol0",120,130); //  problem dataset, set to constant fit
+    TF1 *pol0= new TF1("pol","pol0",70,110); //  problem dataset, set to constant fit
      pol=pol0;
      temp->Fit(pol);
   }
@@ -1232,7 +1233,7 @@ void FinalModelConstruction::getNormalization(){
   TPaveText *pt = new TPaveText(.25,.9,.9,1.0,"NDC");
   pt->SetTextSize(0.045);
   pt->AddText(Form("%s %s eff*acc",proc_.c_str(),cat_.c_str()));
-  pt->Draw() ;
+  //pt->Draw() ;
   tc_lc->Print(Form("%s/%s_%s_ea_fit_to_pol2.png",outDir_.c_str(),proc_.c_str(),catname.c_str()));
   tc_lc->Print(Form("%s/%s_%s_ea_fit_to_pol2.pdf",outDir_.c_str(),proc_.c_str(),catname.c_str()));
 
@@ -1243,7 +1244,7 @@ void FinalModelConstruction::getNormalization(){
   TGraph *  xsGraph = new TGraph();
   TGraph *  brGraph = new TGraph();
   int point=0;
-  for (int m =120; m<131; m++){
+  for (int m =70; m<111; m++){
     MH->setVal(m);
     xsGraph->SetPoint(point,m,xs->getVal());
     brGraph->SetPoint(point,m,brSpline->getVal());
@@ -1276,7 +1277,7 @@ void FinalModelConstruction::getNormalization(){
   }
 
 	finalNorm = new RooFormulaVar(Form("%s_norm",finalPdf->GetName()),Form("%s_norm",finalPdf->GetName()),"@0*@1*@2*@3",RooArgList(*xs,*brSpline,*eaSpline,*rateNuisTerm));
-        for (int m =120; m<131; m=m+5){
+        for (int m =70; m<111; m=m+10){
 				  MH->setVal(m); 
           if(verbosity_ <1) std::cout << "[INFO] MH " << m <<  " -- br " << (brSpline->getVal()) << " - ea "  <<  (eaSpline->getVal()) << " intL= " << intLumi->getVal() << " xs " << xs->getVal() << "norm " << (brSpline->getVal())*(eaSpline->getVal())*(xs->getVal()) << "predicted events " <<  (brSpline->getVal())*(eaSpline->getVal())*(xs->getVal())*intLumi->getVal() <<  std::endl;
         }

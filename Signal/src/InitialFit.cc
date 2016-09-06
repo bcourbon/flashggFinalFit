@@ -37,7 +37,7 @@ bool InitialFit::skipMass(int mh){
 
 vector<int> InitialFit::getAllMH(){
   vector<int> result;
-  for (int m=mhLow_; m<=mhHigh_; m+=5){
+  for (int m=mhLow_; m<=mhHigh_; m+=10){
 		if (skipMass(m)) continue;
     if (verbosity_>=1) cout << "[INFO] LinearInterp - Adding mass: " << m << endl;
     result.push_back(m);
@@ -198,13 +198,17 @@ void InitialFit::runFits(int ncpu){
     //data->Print();
     RooFitResult *fitRes;
     mass->setBins(bins_);
+    //mass->setRange("signal",mh-10,mh+10) ;  
     verbosity_ >=3 ?
       fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true)) :
+      //fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true),Range(mh-10,mh+10)) :
       verbosity_ >=2 ?
-        fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true),PrintLevel(-1)) :
+	fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true),PrintLevel(-1)) :
         fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true),PrintLevel(-1),PrintEvalErrors(-1));
+        //fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true),PrintLevel(-1),Range(mh-10,mh+10)) :
+        //fitRes = fitModel->fitTo(*data,NumCPU(ncpu),RooFit::Minimizer("Minuit","minimize"),SumW2Error(true),Save(true),PrintLevel(-1),PrintEvalErrors(-1),Range(mh-10,mh+10));
     fitResults.insert(pair<int,RooFitResult*>(mh,fitRes));
-    mass->setBins(160); //return to default 
+    //mass->setBins(120); //return to default 
   }
 }
 
@@ -227,9 +231,10 @@ void InitialFit::setFitParams(std::map<int,std::map<std::string,RooRealVar*> >& 
 void InitialFit::plotFits(string name, string rvwv){
   
   TCanvas *canv = new TCanvas();
-  RooPlot *plot = mass->frame(Range(mhLow_-10,mhHigh_+10));
+  RooPlot *plot = mass->frame(Range(mhLow_-5,mhHigh_+10));
   TPaveText *pt = new TPaveText(.65,.6,.97,.95,"NDC");
   for (unsigned int i=0; i<allMH_.size(); i++){
+  //for (unsigned int i=0; i<1; i++){
     int mh = allMH_[i];
     MH->setConstant(false);
     MH->setVal(mh);
@@ -252,11 +257,11 @@ void InitialFit::plotFits(string name, string rvwv){
     pt->AddText(Form(" %d: %s",mh,data->GetName())); 
     }
   }
-  plot->SetTitle(Form("%s %s Fits",(datasetsSTD[125]->GetName()),rvwv.c_str()));
+  plot->SetTitle(Form("%s %s Fits",(datasetsSTD[100]->GetName()),rvwv.c_str()));
   plot->Draw();
-  pt->Draw();
+  //pt->Draw();
   canv->Print(Form("%s.pdf",name.c_str()));
   canv->Print(Form("%s.png",name.c_str()));
-  mass->setBins(160); //return to default 
+  //mass->setBins(120); //return to default 
   delete canv;
 }

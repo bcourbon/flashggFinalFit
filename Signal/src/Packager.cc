@@ -51,7 +51,7 @@ void Packager::packageOutput(bool split, string process , string tag){
   vector<string> expectedObjectsNotFound;
    bool split_=split;
 	// sum datasets first
-	for (int mh=mhLow_; mh<=mhHigh_; mh+=5){
+	for (int mh=mhLow_; mh<=mhHigh_; mh+=10){
 		if (skipMass(mh)) continue;
 		RooDataSet *allDataThisMass = 0;
 		for (int cat=0; cat<nCats_; cat++) {
@@ -122,7 +122,7 @@ void Packager::packageOutput(bool split, string process , string tag){
 			if (!split_)	cerr << "[WARNING] -- ea: " << Form("hggpdfsmrel_%dTeV_%s_%s_norm",sqrts_,proc->c_str(),catname.c_str()) << " not found. It will be skipped" << endl;
 			}
 			else {
-        for (int m =120; m<131; m=m+5){
+        for (int m =70; m<111; m=m+10){
 				MH->setVal(m);norm->getVal(); 
         }
 				runningNormSum->add(*norm);
@@ -191,6 +191,10 @@ void Packager::packageOutput(bool split, string process , string tag){
 				}
 				MH->setVal(mh);
         float XS_value = 0;
+
+	cout<<" Get Normalisation pour mh : "<<mh<<" proc : "<<process<<endl;
+
+
         if (split_){
         XS_value=normalization->GetXsection(mh,process); // in this case get proc-specific eff*acc
         } else {
@@ -250,7 +254,7 @@ void Packager::makePlots(){
 	RooRealVar *MH = (RooRealVar*)saveWS->var("MH");
 	RooAddPdf *sumPdfsAllCats = (RooAddPdf*)saveWS->pdf("sigpdfrelAllCats_allProcs");
 	map<int,RooDataSet*> dataSets;
-	for (int m=mhLow_; m<=mhHigh_; m+=5){
+	for (int m=mhLow_; m<=mhHigh_; m+=10){
 		if (skipMass(m)) continue;
 		RooDataSet *data = (RooDataSet*)saveWS->data(Form("sig_mass_m%d_AllCats",m));
 		if (data) {
@@ -273,7 +277,7 @@ void Packager::makePlots(){
 		RooAddPdf *sumPdfsCat = (RooAddPdf*)saveWS->pdf(Form("sigpdfrel%s_allProcs",catname.c_str()));
 
 		map<int,RooDataSet*> dataSetsCat;
-		for (int m=mhLow_; m<=mhHigh_; m+=5){
+		for (int m=mhLow_; m<=mhHigh_; m+=10){
 			if (skipMass(m)) continue;
 			RooDataSet *data = (RooDataSet*)saveWS->data(Form("sig_mass_m%d_%s",m,catname.c_str()));
 			if (data) {
@@ -291,11 +295,11 @@ void Packager::makePlots(){
 void Packager::makePlot(RooRealVar *mass, RooRealVar *MH, RooAddPdf *pdf, map<int,RooDataSet*> data, string name){
 
 	TCanvas *canv = new TCanvas();
-	RooPlot *dataPlot = mass->frame(Title(name.c_str()),Range(110,140));
+	RooPlot *dataPlot = mass->frame(Title(name.c_str()),Range(65,120));
 	for (map<int,RooDataSet*>::iterator it=data.begin(); it!=data.end(); it++){
 		int mh = it->first;
 		RooDataSet *dset = it->second;
-		dset->plotOn(dataPlot,Binning(320));
+		dset->plotOn(dataPlot,Binning(110));
 		MH->setVal(mh);
 		pdf->plotOn(dataPlot);
 	}
@@ -303,12 +307,12 @@ void Packager::makePlot(RooRealVar *mass, RooRealVar *MH, RooAddPdf *pdf, map<in
 	canv->Print(Form("%s/%s_fits.pdf",outDir_.c_str(),name.c_str()));
 	canv->Print(Form("%s/%s_fits.png",outDir_.c_str(),name.c_str()));
 
-	RooPlot *pdfPlot = mass->frame(Title(name.c_str()),Range(100,160));
-	pdfPlot->GetYaxis()->SetTitle(Form("Pdf projection / %2.1f GeV",(mass->getMax()-mass->getMin())/160.));
+	RooPlot *pdfPlot = mass->frame(Title(name.c_str()),Range(65,120));
+	pdfPlot->GetYaxis()->SetTitle(Form("Pdf projection / %2.1f GeV",(mass->getMax()-mass->getMin())/110.));
 	for (int mh=mhLow_; mh<=mhHigh_; mh++){
 		MH->setVal(mh);
 		// to get correct normlization need to manipulate with bins and range
-		pdf->plotOn(pdfPlot,Normalization(mass->getBins()/160.*(mass->getMax()-mass->getMin())/60.,RooAbsReal::RelativeExpected));
+		pdf->plotOn(pdfPlot,Normalization(mass->getBins()/110.*(mass->getMax()-mass->getMin())/55.,RooAbsReal::RelativeExpected));
 	}
 	pdfPlot->Draw();
 	canv->Print(Form("%s/%s_interp.pdf",outDir_.c_str(),name.c_str()));

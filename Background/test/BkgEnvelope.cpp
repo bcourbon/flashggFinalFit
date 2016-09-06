@@ -54,7 +54,7 @@ namespace po = program_options;
 
 bool BLIND = true;
 bool runFtestCheckWithToys=false;
-int nBinsForMass = 320;
+int nBinsForMass = 110;
 
 TRandom3 *RandomGen = new TRandom3();
 
@@ -236,10 +236,17 @@ double getGoodnessOfFit(RooRealVar *mass, RooAbsPdf *mpdf, RooDataSet *data, std
 
   // get The Chi2 value from the data
   RooPlot *plot_chi2 = mass->frame();
-  data->plotOn(plot_chi2,Binning(nBinsForMass),Name("data"));
+  data->plotOn(plot_chi2,Name("data"));
 
   pdf->plotOn(plot_chi2,Name("pdf"));
   int np = pdf->getParameters(*data)->getSize();
+  
+  cout<<"Calcul Goodness of Fit "<<endl;
+  pdf->Print();
+  cout<<"number of Parameters ="<<np<<endl;
+  cout<<"number of floating Parameters ="<<np-6<<endl;
+
+  np=np-6; //DCB parameters fixed except fraction
 
   double chi2 = plot_chi2->chiSquare("pdf","data",np);
   std::cout << "[INFO] Calculating GOF for pdf " << pdf->GetName() << ", using " <<np << " fitted parameters" <<std::endl;
@@ -308,7 +315,7 @@ void plot(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, string name,vector
   
   // Chi2 taken from full range fit
   RooPlot *plot_chi2 = mass->frame();
-  data->plotOn(plot_chi2,Binning(nBinsForMass));
+  data->plotOn(plot_chi2/*,Binning(nBinsForMass)*/);
   pdf->plotOn(plot_chi2);
 
   int np = pdf->getParameters(*data)->getSize()+1; //Because this pdf has no extend
@@ -316,19 +323,20 @@ void plot(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, string name,vector
  
   *prob = getGoodnessOfFit(mass,pdf,data,name);
   RooPlot *plot = mass->frame();
-  mass->setRange("unblindReg_1",100,115);
-  mass->setRange("unblindReg_2",135,180);
+  mass->setRange("unblindReg_1",85,95);
+  mass->setRange("unblindReg_2",110,120);
   if (BLIND) {
-    data->plotOn(plot,Binning(80),CutRange("unblindReg_1"));
-    data->plotOn(plot,Binning(80),CutRange("unblindReg_2"));
-    data->plotOn(plot,Binning(80),Invisible());
+    data->plotOn(plot,Binning(nBinsForMass),CutRange("unblindReg_1"));
+    data->plotOn(plot,Binning(nBinsForMass),CutRange("unblindReg_2"));
+    data->plotOn(plot,Binning(nBinsForMass),Invisible());
   }
-  else data->plotOn(plot,Binning(80));
+  else data->plotOn(plot,Binning(nBinsForMass));
 
  // data->plotOn(plot,Binning(80));
   TCanvas *canv = new TCanvas();
   pdf->plotOn(plot);//,RooFit::NormRange("fitdata_1,fitdata_2"));
-  pdf->paramOn(plot,RooFit::Layout(0.34,0.96,0.89),RooFit::Format("NEA",AutoPrecision(1)));
+  pdf->paramOn(plot,RooFit::Layout(0.44,0.96,0.89),RooFit::Format("NEA",AutoPrecision(1)));
+  plot->getAttText()->SetTextSize(0.02);
   if (BLIND) plot->SetMinimum(0.0001);
   plot->SetTitle("");
   plot->Draw();
@@ -349,19 +357,20 @@ void plot(RooRealVar *mass, RooMultiPdf *pdfs, RooCategory *catIndex, RooDataSet
   
   int color[7] = {kBlue,kRed,kMagenta,kGreen+1,kOrange+7,kAzure+10,kBlack};
   TCanvas *canv = new TCanvas();
-  TLegend *leg = new TLegend(0.5,0.55,0.92,0.88);
+  TLegend *leg = new TLegend(0.4,0.55,0.92,0.88);
+  leg->SetTextSize(0.025);
   leg->SetFillColor(0);
   leg->SetLineColor(1);
   RooPlot *plot = mass->frame();
 
-  mass->setRange("unblindReg_1",100,115);
-  mass->setRange("unblindReg_2",135,180);
+  mass->setRange("unblindReg_1",85,95);
+  mass->setRange("unblindReg_2",110,120);
   if (BLIND) {
-    data->plotOn(plot,Binning(80),CutRange("unblindReg_1"));
-    data->plotOn(plot,Binning(80),CutRange("unblindReg_2"));
-    data->plotOn(plot,Binning(80),Invisible());
+    data->plotOn(plot,Binning(nBinsForMass),CutRange("unblindReg_1"));
+    data->plotOn(plot,Binning(nBinsForMass),CutRange("unblindReg_2"));
+    data->plotOn(plot,Binning(nBinsForMass),Invisible());
   }
-  else data->plotOn(plot,Binning(80)); 
+  else data->plotOn(plot,Binning(nBinsForMass)); 
 
   int currentIndex = catIndex->getIndex();
   TObject *datLeg = plot->getObject(int(plot->numItems()-1));
@@ -399,14 +408,14 @@ void plot(RooRealVar *mass, map<string,RooAbsPdf*> pdfs, RooDataSet *data, strin
   leg->SetLineColor(0);
   RooPlot *plot = mass->frame();
 
-  mass->setRange("unblindReg_1",100,115);
-  mass->setRange("unblindReg_2",135,180);
+  mass->setRange("unblindReg_1",85,95);
+  mass->setRange("unblindReg_2",110,120);
   if (BLIND) {
-    data->plotOn(plot,Binning(80),CutRange("unblindReg_1"));
-    data->plotOn(plot,Binning(80),CutRange("unblindReg_2"));
-    data->plotOn(plot,Binning(80),Invisible());
+    data->plotOn(plot,Binning(nBinsForMass),CutRange("unblindReg_1"));
+    data->plotOn(plot,Binning(nBinsForMass),CutRange("unblindReg_2"));
+    data->plotOn(plot,Binning(nBinsForMass),Invisible());
   }
-  else data->plotOn(plot,Binning(80));
+  else data->plotOn(plot,Binning(nBinsForMass));
 
   TObject *datLeg = plot->getObject(int(plot->numItems()-1));
 	if(flashggCats_.size() >0){
@@ -492,9 +501,10 @@ int getBestFitFunction(RooMultiPdf *bkg, RooDataSet *data, RooCategory *cat, boo
 		int fitStatus=1;		
 		runFit(bkg->getCurrentPdf(),data,&minNll,&fitStatus,/*max iterations*/3);
 		// Add the penalty
-
-		minNll=minNll+bkg->getCorrection();
-
+		//Low-Mass : don't take in account the nDCB parameters in the penalty
+		double cFactor=0.5;
+		minNll=minNll+bkg->getCorrection()-cFactor*6;
+	
 		if (!silent) {
 			/*
 			std::cout << "After Minimization ------------------  " <<std::endl;
@@ -528,6 +538,18 @@ int getBestFitFunction(RooMultiPdf *bkg, RooDataSet *data, RooCategory *cat, boo
 	return best_index;
 }
 
+
+string abbrev(string funcName){
+	string ab;
+	if (funcName=="Bernstein") ab="ber";
+	if (funcName=="Exponential") ab="exp";
+	if (funcName=="PowerLaw") ab="pow";
+	if (funcName=="Laurent") ab="lau";
+	return ab;
+}
+
+
+
 int main(int argc, char* argv[]){
  
   setTDRStyle();
@@ -538,6 +560,7 @@ int main(int argc, char* argv[]){
   lumi_sqrtS = "13 TeV";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
   string fileName;
+  string fileNameZee;
   int ncats;
   int singleCategory;
   string datfile;
@@ -545,7 +568,7 @@ int main(int argc, char* argv[]){
   string outfilename;
   bool is2011=false;
   bool verbose=false;
-  bool saveMultiPdf=false;
+  bool saveMultiPdf=true;
 	int isFlashgg_ =1;
 string flashggCatsStr_;
 vector<string> flashggCats_;
@@ -555,18 +578,20 @@ vector<string> flashggCats_;
   desc.add_options()
     ("help,h",                                                                                  "Show help")
     ("infilename,i", po::value<string>(&fileName),                                              "In file name")
-    ("ncats,c", po::value<int>(&ncats)->default_value(5),                                       "Number of categories")
+    ("infilenameZee,z", po::value<string>(&fileNameZee),                                              "In file name")
+    ("ncats,c", po::value<int>(&ncats)->default_value(4),                                       "Number of categories")
     ("singleCat", po::value<int>(&singleCategory)->default_value(-1),                           "Run A single Category")
     ("datfile,d", po::value<string>(&datfile)->default_value("dat/fTest.dat"),                  "Right results to datfile for BiasStudy")
     ("outDir,D", po::value<string>(&outDir)->default_value("plots/fTest"),                      "Out directory for plots")
-    ("saveMultiPdf", po::value<string>(&outfilename),         					"Save a MultiPdf model with the appropriate pdfs")
+    ("saveMultiPdf",          					"Save a MultiPdf model with the appropriate pdfs")
+    ("outFile,o", po::value<string>(&outfilename)->default_value("CMS-HGG_bkgfit.root"),        					"outfile")
     ("runFtestCheckWithToys", 									"When running the F-test, use toys to calculate pvals (and make plots) ")
     ("is2011",                                                                                  "Run 2011 config")
     ("is2012",                                                                                  "Run 2012 config")
     ("unblind",  									        "Dont blind plots")
     ("isFlashgg",  po::value<int>(&isFlashgg_)->default_value(1),  								    	        "Use Flashgg output ")
     ("isData",  po::value<bool>(&isData_)->default_value(0),  								    	        "Use Data not MC ")
-		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,UntaggedTag_3,UntaggedTag_4,VBFTag_0,VBFTag_1,VBFTag_2,TTHHadronicTag,TTHLeptonicTag,VHHadronicTag,VHTightTag,VHLooseTag,VHEtTag"),       "Flashgg category names to consider")
+    ("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,VBFTag_0"),       "Flashgg category names to consider")
     ("verbose,v",                                                                               "Run with more output")
   ;
   po::variables_map vm;
@@ -642,6 +667,10 @@ vector<string> flashggCats_;
 		std::cout << "[INFO] got intL and sqrts " << intL << ", " << sqrts << std::endl;
 	}
 
+  TFile *inFileZee = TFile::Open(fileNameZee.c_str());
+  RooWorkspace *inWS_Zee=(RooWorkspace*)inFileZee->Get("Zpeak");
+  inWS_Zee->Print();
+
 	vector<string> functionClasses;
 	functionClasses.push_back("Bernstein");
 	functionClasses.push_back("Exponential");
@@ -652,66 +681,15 @@ vector<string> flashggCats_;
 	namingMap.insert(pair<string,string>("Exponential","exp"));
 	namingMap.insert(pair<string,string>("PowerLaw","pow"));
 	namingMap.insert(pair<string,string>("Laurent","lau"));
-	vector<pair<string,int> > fabChoice;
-	if (is2011) {
-		fabChoice.push_back(pair<string,int>("Bernstein",4));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-	}
-	else {
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",4));
-		fabChoice.push_back(pair<string,int>("Bernstein",4));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",5));
-		fabChoice.push_back(pair<string,int>("Bernstein",4));
-		fabChoice.push_back(pair<string,int>("Bernstein",4));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-		fabChoice.push_back(pair<string,int>("Bernstein",3));
-	}
 
 	// store results here
 
 	FILE *resFile ;
 	if  (singleCategory >-1) resFile = fopen(Form("%s/fTestResults_%s.txt",outDir.c_str(),flashggCats_[singleCategory].c_str()),"w");
 	else resFile = fopen(Form("%s/fTestResults.txt",outDir.c_str()),"w");
+
+        FILE *logFile = fopen(Form("%s/EnvelopeResults.txt",outDir.c_str()),"w");
+
 	vector<map<string,int> > choices_vec;
 	vector<map<string,std::vector<int> > > choices_envelope_vec;
 	vector<map<string,RooAbsPdf*> > pdfs_vec;
@@ -767,8 +745,12 @@ vector<string> flashggCats_;
 			thisdataBinned_name= Form("roohist_data_mass_cat%d",cat);
 			//RooDataSet *data = (RooDataSet*)dataFull;
 		}
+		cout<<"++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl;
+		mass->Print();
+		dataFull->Print();
 		RooDataHist thisdataBinned(thisdataBinned_name.c_str(),"data",*mass,*dataFull);
 		data = (RooDataSet*)&thisdataBinned;
+		data->Print();
 
 		RooArgList storedPdfs("store");
 
@@ -777,6 +759,13 @@ vector<string> flashggCats_;
 
 		double MinimimNLLSoFar=1e10;
 		int simplebestFitPdfIndex = 0;
+
+		//LOW-MASS : take the Zee fit functions and fix its parameters
+		RooAbsPdf *pdfZee = inWS_Zee->pdf(Form("DYee_%s_%s_DCB",ext.c_str(),catname.c_str()));
+		cout<<"======================= Pdf Zee : =========================="<<endl;
+                pdfZee->Print();
+                RooAbsPdf *pdfZeeFixed=pdfsModel.fixDoubleCB(pdfZee,data,Form("DYee_%s_%s_DCB",ext.c_str(),catname.c_str()));
+		
 
 		// Standard F-Test to find the truth functions
 		for (vector<string>::iterator funcType=functionClasses.begin(); 
@@ -792,12 +781,13 @@ vector<string> flashggCats_;
 			int counter =0;
 			//	while (prob<0.05){
 			while (prob<0.05 && order < 7){ //FIXME
-				RooAbsPdf *bkgPdf = getPdf(pdfsModel,*funcType,order,Form("ftest_pdf_%d_%s",cat,ext.c_str()));
-				if (!bkgPdf){
+				RooAbsPdf *ContinuumPdf = getPdf(pdfsModel,*funcType,order,Form("ftest_cont_%d_%s_%s_%d",cat,ext.c_str(),abbrev(*funcType).c_str(),order));
+				if (!ContinuumPdf){
 					// assume this order is not allowed
 					order++;
 				}
 				else {
+					RooAbsPdf *bkgPdf = pdfsModel.getDoubleCBplusContinuum(ContinuumPdf, pdfZeeFixed, Form("ftest_pdf_%d_%s_%s_%d",cat,ext.c_str(),abbrev(*funcType).c_str(),order));  //LOW-MASS
 
 					//RooFitResult *fitRes = bkgPdf->fitTo(*data,Save(true),RooFit::Minimizer("Minuit2","minimize"));
 					int fitStatus = 0;
@@ -808,14 +798,14 @@ vector<string> flashggCats_;
 					if (chi2<0. && order>1) chi2=0.;
 					if (prev_pdf!=NULL){
 						prob = getProbabilityFtest(chi2,order-prev_order,prev_pdf,bkgPdf,mass,data
-								,Form("%s/Ftest_from_%s%d_cat%d.pdf",outDir.c_str(),funcType->c_str(),order,cat));
+								,Form("%s/Ftest_from_%s%d_cat%d.png",outDir.c_str(),funcType->c_str(),order,cat));
 						std::cout << "[INFO]  F-test Prob(chi2>chi2(data)) == " << prob << std::endl;
 					} else {
 						prob = 0;
 					}
 					double gofProb=0;
 					// otherwise we get it later ...
-					if (!saveMultiPdf) plot(mass,bkgPdf,data,Form("%s/%s%d_cat%d.pdf",outDir.c_str(),funcType->c_str(),order,cat),flashggCats_,fitStatus,&gofProb);
+					if (!saveMultiPdf) plot(mass,bkgPdf,data,Form("%s/%s%d_cat%d.png",outDir.c_str(),funcType->c_str(),order,cat),flashggCats_,fitStatus,&gofProb);
 					cout << "[INFO]\t " << *funcType << " " << order << " " << prevNll << " " << thisNll << " " << chi2 << " " << prob << endl;
 					//fprintf(resFile,"%15s && %d && %10.2f && %10.2f && %10.2f \\\\\n",funcType->c_str(),order,thisNll,chi2,prob);
 					prevNll=thisNll;
@@ -847,14 +837,15 @@ vector<string> flashggCats_;
 				std::cout << "[INFO] Upper end Threshold for highest order function " << upperEnvThreshold <<std::endl;
 
 				while (prob<upperEnvThreshold){
-					RooAbsPdf *bkgPdf = getPdf(pdfsModel,*funcType,order,Form("env_pdf_%d_%s",cat,ext.c_str()));
-					if (!bkgPdf ){
+				RooAbsPdf *ContinuumPdf = getPdf(pdfsModel,*funcType,order,Form("ftest_cont_%d_%s_%s_%d",cat,ext.c_str(),abbrev(*funcType).c_str(),order));
+					if (!ContinuumPdf ){
 						// assume this order is not allowed
 						if (order >6) { std::cout << " [WARNING] could not add ] " << std::endl; break ;}
 						order++;
 					}
 
 					else {
+				RooAbsPdf *bkgPdf = pdfsModel.getDoubleCBplusContinuum(ContinuumPdf, pdfZeeFixed, Form("ftest_pdf_%d_%s_%s_%d",cat,ext.c_str(),abbrev(*funcType).c_str(),order));  //LOW-MASS
 						//RooFitResult *fitRes;
 						int fitStatus=0;
 						runFit(bkgPdf,data,&thisNll,&fitStatus,/*max iterations*/3);//bkgPdf->fitTo(*data,Save(true),RooFit::Minimizer("Minuit2","minimize"));
@@ -871,15 +862,44 @@ vector<string> flashggCats_;
 						cache_pdf=prev_pdf;
 
 						// Calculate goodness of fit for the thing to be included (will use toys for lowstats)!
-						double gofProb =0; 
-						plot(mass,bkgPdf,data,Form("%s/%s%d_cat%d.pdf",outDir.c_str(),funcType->c_str(),order,cat),flashggCats_,fitStatus,&gofProb);
-
+						double gofProb =0; //LOW-MASS : np = np-6 because of DCB fixed parameters
+						plot(mass,bkgPdf,data,Form("%s/%s%d_cat%d.png",outDir.c_str(),funcType->c_str(),order,cat),flashggCats_,fitStatus,&gofProb);
+ 
 						if ((prob < upperEnvThreshold) ) { // Looser requirements for the envelope
 
 							if (gofProb > 0.01 || order == truthOrder ) {  // Good looking fit or one of our regular truth functions
+							//if (gofProb > 0.01) {  // Good looking fit or one of our regular truth functions
 
 								std::cout << "[INFO] Adding to Envelope " << bkgPdf->GetName() << " "<< gofProb 
 									<< " 2xNLL + c is " << myNll + bkgPdf->getVariables()->getSize() <<  std::endl;
+								
+								bkgPdf->Print();
+								//TODO : at this point, let's float the DCB parameters within their uncertainty range for the combine fits
+								RooArgSet *params = bkgPdf->getParameters(*data);
+								params->Print();
+								
+								int isTruth=0;
+								if(order==truthOrder) isTruth=1;
+
+ 								//double mean=((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_mean",ext.c_str(),catname.c_str())))->getVal();
+ 								//double meanerr=((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_mean",ext.c_str(),catname.c_str())))->getError();
+								//double sigma=((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_sigma",ext.c_str(),catname.c_str())))->getVal();
+ 								//double sigmaerr=((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_sigma",ext.c_str(),catname.c_str())))->getError();
+								double frac=1-((RooRealVar*)params->find(Form("ftest_pdf_%d_%s_%s_%d_frac_sum1",cat,ext.c_str(),abbrev(*funcType).c_str(),order)))->getVal(); 								
+								double fracerr=((RooRealVar*)params->find(Form("ftest_pdf_%d_%s_%s_%d_frac_sum1",cat,ext.c_str(),abbrev(*funcType).c_str(),order)))->getError();
+
+
+								fprintf(logFile,"category : %d , pdf : %s , gof : %f, isTruth : %d \n ",cat, bkgPdf->GetName(), gofProb, isTruth);
+								fprintf(logFile,"frac DCB : %3f +/- %3f \n ",frac,fracerr); 
+								//fprintf(logFile,"mean DCB : %3f +/- %3f \n ",mean,meanerr); 
+								//fprintf(logFile,"sigma DCB : %3f +/- %3f \n \n ",sigma,sigmaerr); 
+
+ 								//((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_mean",ext.c_str(),catname.c_str())))->setConstant(false);
+ 								//((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_sigma",ext.c_str(),catname.c_str())))->setConstant(false);
+ 								//((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_nCB1",ext.c_str(),catname.c_str())))->setConstant(false);
+ 								//((RooRealVar*)params->find(Form("DYee_%s_%s_DCB_nCB2",ext.c_str(),catname.c_str())))->setConstant(false);
+								bkgPdf->Print();
+
 								allPdfs.insert(pair<string,RooAbsPdf*>(Form("%s%d",funcType->c_str(),order),bkgPdf));
 								storedPdfs.add(*bkgPdf);
 								pdforders.push_back(order);
@@ -941,14 +961,16 @@ vector<string> flashggCats_;
 			RooDataHist dataBinned(Form("roohist_data_mass_%s",catname.c_str()),"data",*mass,*dataFull);
 
 			// Save it (also a binned version of the dataset
+			outputws->import(catIndex);
 			outputws->import(*pdf);
 			outputws->import(nBackground);
-			outputws->import(catIndex);
 			outputws->import(dataBinned);
-			outputws->import(*data);
+			outputws->import(*dataFull);
 			plot(mass,pdf,&catIndex,data,Form("%s/multipdf_%s",outDir.c_str(),catname.c_str()),flashggCats_,cat,bestFitPdfIndex);
 
 		}
+
+		outputws->Print();
 
 		}
 		if (saveMultiPdf){
@@ -967,8 +989,7 @@ vector<string> flashggCats_;
 				cout << "\t" << it->first << " - " << it->second << endl;
 				fprintf(dfile,"truth=%s:%d:%s%d\n",it->first.c_str(),it->second,namingMap[it->first].c_str(),it->second);
 			}
-			fprintf(dfile,"fabian=%s:%d:%s%d\n",fabChoice[cat-startingCategory].first.c_str()
-					,fabChoice[cat-startingCategory].second,namingMap[fabChoice[cat-startingCategory].first].c_str(),fabChoice[cat-startingCategory].second);
+			//fprintf(dfile,"fabian=%s:%d:%s%d\n",fabChoice[cat-startingCategory].first.c_str(),fabChoice[cat-startingCategory].second,namingMap[fabChoice[cat-startingCategory].first].c_str(),fabChoice[cat-startingCategory].second);
 			for (map<string,std::vector<int> >::iterator it=choices_envelope_vec[cat-startingCategory].begin(); it!=choices_envelope_vec[cat-startingCategory].end(); it++){
 				std::vector<int> ords = it->second;
 				for (std::vector<int>::iterator ordit=ords.begin(); ordit!=ords.end(); ordit++){

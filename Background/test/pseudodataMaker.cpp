@@ -66,6 +66,7 @@ bool isFlashgg_;
 bool verbose_;
 std::map < string, RooDataSet*> mymap;
 std::map < string, RooDataSet*> mymapsig;
+std::map < string, RooDataSet*> mymapdy;
 std::map < string, RooDataSet*> mymapbkg;
 
 void OptionParser(int argc, char *argv[]){
@@ -82,7 +83,7 @@ void OptionParser(int argc, char *argv[]){
 		("pseudodata", po::value<int>(&pseudodata_)->default_value(0),                                    "make pseudodata from inputfiles")
 		("procs,p", po::value<string>(&procString_)->default_value("ggh,vbf,wh,zh,tth"),          "Processes")
 		("plotdir", po::value<string>(&plotDir_)->default_value("pseudodataplots"),          "PseudoData plots")
-		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,UntaggedTag_3,UntaggedTag_4,VBFTag_0,VBFTag_1,VBFTag_2,VHHadronicTag,VHLooseTag,VHTightTag,VHEtTag,TTHLeptonicTag,TTHHadronicTag"),       "Flashgg category names to consider")
+		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,VBFTag_0"),       "Flashgg category names to consider")
 		("verbose", po::value<bool>(&verbose_)->default_value(0),                                    "Extra messages")
 		;
 
@@ -159,7 +160,7 @@ int main(int argc, char *argv[]){
 
 	// new workspace 
 	RooWorkspace *outWS = new RooWorkspace();
-	RooRealVar  newmass("CMS_hgg_mass","CMS_hgg_mass",100,180) ;
+	RooRealVar  newmass("CMS_hgg_mass","CMS_hgg_mass",70,120) ;
 	RooRealVar  newweight("wCMS_hgg_mass","wCMS_hgg_mass",0,10) ;
 	RooRealVar  sqrts("SqrtS","SqrtS",0,14) ;
 	RooRealVar  intlumi("IntLumi","IntLumi",0,300000) ;
@@ -297,7 +298,10 @@ int main(int argc, char *argv[]){
 
 		// Instead, generate pseudodata by fitting the dataset in each case and then throwing toys to mimic the number of weights.
 		if (pseudodata_){
+			bool isPeak = (filetype_[ifile]=="sig"||filetype_[ifile]=="dy");
 			bool isSig = (filetype_[ifile]=="sig");
+			bool isDY = (filetype_[ifile]=="dy");
+			cout<<" IS PEAK? "<<isPeak<<" IS SIG? "<<isSig<<" IS DY? "<<isDY<<endl;
 			// fetch all data in this input WS
 			std::list<RooAbsData*> data =  (inWS->allData()) ; 
 			// and loop over the workspaces
@@ -343,10 +347,12 @@ int main(int argc, char *argv[]){
 				PdfModelBuilder pdfsModel;
 				int order =3;
 				pdfsModel.setObsVar(&newmass);
-
-				RooRealVar a1("a1","a1",125,123,126) ;
-				RooRealVar b1("b1","b1",125,123,126) ;
-				RooRealVar d1("c1","c1",125,123,126) ;
+				float mean=0;
+				if (isSig) mean=125; // FIXME:change when we have a low mass signal sample
+				if (isDY) mean=91;
+				RooRealVar a1("a1","a1",mean,mean-3,mean+3) ;
+				RooRealVar b1("b1","b1",mean,mean-3,mean+3) ;
+				RooRealVar d1("c1","c1",mean,mean-3,mean+3) ;
 				RooRealVar a2("a2","a2",0,0.,10) ; 
 				RooRealVar b2("b2","b2",0,0.,10) ; 
 				RooRealVar d2("c2","c2",0,0.,10) ; 
@@ -367,7 +373,7 @@ int main(int argc, char *argv[]){
 				RooRandom::randomGenerator()->SetSeed(seed_+100*seedOffset);
         seedOffset++;
         std::cout << "[INFO] RANDOM NUMBER SEED FOR " << dataPlot->GetName() << " IS " << RooRandom::randomGenerator()->GetSeed() << std::endl;
-				if (isSig) {
+				if (isPeak) {
 				RooFitResult *fitTestGaus = gauss->fitTo(*dataPlot,RooFit::Save(1),RooFit::Verbose(0),RooFit::SumW2Error(kTRUE), RooFit::Minimizer("Minuit2","minimize")); //FIXME
 				float gausnll = fitTestGaus->minNll();
 					dataFit = gauss->generate(newmass,sumEntries)  ; //intLumi is in pb^-1. Use directly as mustiplicative factor since default is for 1 pb^-1
@@ -379,7 +385,8 @@ int main(int argc, char *argv[]){
 				yields.push_back(dataFit->sumEntries());
 				weights.push_back(sumWeights);
 				} else {
-				RooFitResult *fitTest = p2->fitTo(*dataPlot,RooFit::Save(1),RooFit::Verbose(0),RooFit::SumW2Error(kTRUE), RooFit::Minimizer("Minuit2","minimize")); //FIXME
+				RooFitResult *fitTest = p2->fitTo(*dataPlot,RooFit::Save(1),RooFit::Verbose(0),RooFit::SumW2Error(kTRUE), RooFit::Minimizer("Minuit2","minimize"));
+				//RooFitResult *fitTest = p2->fitTo(*dataPlot,Range(100,120),RooFit::Save(1),RooFit::Verbose(0),RooFit::SumW2Error(kTRUE), RooFit::Minimizer("Minuit2","minimize")); //RANGE 100-120 because low-mass and QCD samples not available !
 				float bernsnll = fitTest->minNll();
 					dataFit = p2->generate(newmass,sumEntries)  ;
 					p2->plotOn(mframe) ;
@@ -394,18 +401,20 @@ int main(int argc, char *argv[]){
 
 				mframe->Draw();
 				std::ostringstream name;
-				if (isSig) {	
+				if (isPeak) {	
 				name << plotDir_<<"/gaussians/testGaus"<<outData[i]->GetName()<<"_file"<<ifile<<".pdf";
+				name << plotDir_<<"/gaussians/testGaus"<<outData[i]->GetName()<<"_file"<<ifile<<".png";
 				}
 				else {
 				name << plotDir_<<"/berns/testBern"<<outData[i]->GetName()<<"_file"<<ifile<<".pdf";
+				name << plotDir_<<"/berns/testBern"<<outData[i]->GetName()<<"_file"<<ifile<<".png";
 				}
 					c1->SaveAs((name).str().c_str());
 
 
 				//	if (ifile==0){ // first iteration, we want to create a new list of datasets to store in the otuput file 
 				//		mymap.insert(std::pair<string,RooDataSet*>(outData[i]->GetName(), dataFit));
-				/*			if (isSig){
+				/*			if (isPeak){
 								std::cout << "[INFO] creating sig dataset " << *dataFit << std::endl;
 								mymapsig.insert(std::pair<string,RooDataSet*>(outData[i]->GetName(), dataFit));
 								} else {
@@ -421,6 +430,10 @@ int main(int argc, char *argv[]){
 				RooDataSet* itersig;
 				std::map<string,RooDataSet*>::iterator itersig0 =  mymapsig.find((outData[i]->GetName())); // find dataset in map from name.
 				if (itersig0 == mymapsig.end()) {itersig = 0; } else {itersig = itersig0->second;}
+
+				RooDataSet* iterdy;
+				std::map<string,RooDataSet*>::iterator iterdy0 =  mymapdy.find((outData[i]->GetName())); // find dataset in map from name.
+				if (iterdy0 == mymapdy.end()) {iterdy = 0; } else {itersig = itersig0->second;}
 
 				RooDataSet* iterbkg; 
 				std::map<string,RooDataSet*>::iterator iterbkg0	=  mymapbkg.find((outData[i]->GetName())); // find dataset in map from name.
@@ -443,7 +456,15 @@ int main(int argc, char *argv[]){
 					}	else { // if not, make new entry to map
 						mymapsig.insert(std::pair<string,RooDataSet*>(outData[i]->GetName(), (RooDataSet*) dataFit->Clone()));
 					}
-				} else{
+				}
+				if(isDY){
+					if (itersig){ // if it exists, append new data
+						itersig->append(*dataFit);
+					}	else { // if not, make new entry to map
+						mymapdy.insert(std::pair<string,RooDataSet*>(outData[i]->GetName(), (RooDataSet*) dataFit->Clone()));
+					}
+				}
+				else{
 					if (iterbkg){ // if it exists, append new data
 						iterbkg->append(*dataFit);
 					}	else { // if not, make new entry to map
@@ -465,7 +486,11 @@ int main(int argc, char *argv[]){
 		std::cout << "[INFO] Map entry " << imap->first << ", " << *(imap->second) << std::endl;
 	}
 	std::cout << "[INFO] mapsig size " << mymapsig.size() <<" and contents :"  << std::endl;
-	for ( std::map<string,RooDataSet*>::iterator imap=mymapsig.begin(); imap!=mymapsig.end(); ++imap ){
+	for ( std::map<string,RooDataSet*>::iterator imap=mymapsig.begin(); imap!=mymapdy.end(); ++imap ){
+		std::cout << "[INFO] Mapsig entry " << imap->first << ", " << *(imap->second) << std::endl;
+	}
+	std::cout << "[INFO] mapsig size " << mymapdy.size() <<" and contents :"  << std::endl;
+	for ( std::map<string,RooDataSet*>::iterator imap=mymapdy.begin(); imap!=mymapdy.end(); ++imap ){
 		std::cout << "[INFO] Mapsig entry " << imap->first << ", " << *(imap->second) << std::endl;
 	}
 	std::cout << "[INFO] mapbkg size " << mymapbkg.size() <<" and contents :"  << std::endl;
@@ -477,6 +502,7 @@ int main(int argc, char *argv[]){
 	for(unsigned int d =0 ; d<flashggCats_.size() ; d++){
 		RooDataSet* iter =  mymap[Form("data_mass_%s",(flashggCats_[d]).c_str())]; // find dataset in map from name.
 		RooDataSet* itersig =  mymapsig[Form("data_mass_%s",(flashggCats_[d]).c_str())]; // find dataset in map from name.
+		RooDataSet* iterdy =  mymapdy[Form("data_mass_%s",(flashggCats_[d]).c_str())]; // find dataset in map from name.
 		RooDataSet* iterbkg =  mymapbkg[Form("data_mass_%s",(flashggCats_[d]).c_str())]; // find dataset in map from name.
 		if (iter) {
 			outWS->import(*iter);
@@ -489,6 +515,9 @@ int main(int argc, char *argv[]){
 			}
 			if (itersig) {
 				itersig->plotOn(mframe,LineColor(kRed),FillColor(kRed), MarkerColor(kRed));
+			}
+			if (iterdy) {
+				iterdy->plotOn(mframe,LineColor(kRed),FillColor(kRed), MarkerColor(kOrange));
 			}
 			mframe->Draw();
 			std::ostringstream name;

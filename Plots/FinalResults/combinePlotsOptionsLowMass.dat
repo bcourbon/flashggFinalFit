@@ -1,0 +1,11 @@
+# NOTICE THAT TO PASS AN = SIGN IN A STRING USE \= e.g #sqrt{s}\=13TeV
+
+#method=pval:files=combineJobs13TeV_LowMass/ExpProfileLikelihood/ExpProfileLikelihood.root:colors=2:styles=1:widths=2:names=Expected:text=#sqrt{s}\=13TeV L\=2.6fb^{-1}:outname=FinalPlotsLowMass/pval-expected:xaxis=70,110
+
+#method=pval:files=combineJobs13TeV_LowMass/ExpProfileLikelihood/Profilelikelihood.root,combineJobs13TeV_LowMass/ProfileLikelihood/All.root:colors=2,1:styles=1,1:widths=2,2:names=Expected,Observed:text=#sqrt{s}\=13TeV L\=2.6fb^{-1}:outname=FinalPlotsLowMass/pval-observed
+
+method=limit:files=combineJobs13TeV_LowMass/ExpAsymptotic/ExpAsymptotic.root:text=#sqrt{s}\=13TeV L\=2.6fb^{-1}:outname=FinalPlotsLowMass/limit-expected
+
+#method=limit:files=combineJobs13TeV_LowMass/Asymptotic/Asymptotic.root:text=#sqrt{s}\=13TeV L\=2.6fb^{-1}:outname=FinalPlotsLowMass/limit-observed
+
+

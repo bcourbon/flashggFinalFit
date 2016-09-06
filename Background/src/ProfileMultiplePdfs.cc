@@ -30,11 +30,11 @@ void ProfileMultiplePdfs::clearPdfs(){
 }
 
 void ProfileMultiplePdfs::printPdfs(){
-  cout << "List of Pdfs: size(" << listOfPdfs.size() << ")" << endl;
+  std::cout << "List of Pdfs: size(" << listOfPdfs.size() << ")" << std::endl;
   for (map<string,pair<RooAbsPdf*,float> >::iterator m=listOfPdfs.begin(); m!=listOfPdfs.end(); m++) { 
     RooAbsPdf *pdf = m->second.first;
-    cout << "\t" << pdf->GetName() << " (penalty=" << m->second.second << ")" << endl;
-    cout << "\t -- "; pdf->Print();
+    std::cout << "\t" << pdf->GetName() << " (penalty=" << m->second.second << ")" << std::endl;
+    std::cout << "\t -- "; pdf->Print();
   }
 }
 
@@ -137,11 +137,11 @@ pair<double,map<string,TGraph*> > ProfileMultiplePdfs::profileLikelihood(RooAbsD
       }
     }
   }
-  cout << "Best fit at:" << endl;
-  cout << "\tnll = " << globalMinNLL << endl;
-  cout << "\tmu  = " << bestFitVal << endl;
-  cout << "\terr  = "<< bestFitErr << endl;
-  cout << "\tpdf = " << bestFitPdf->GetName() << endl;
+  std::cout << "Best fit at:" << std::endl;
+  std::cout << "\tnll = " << globalMinNLL << std::endl;
+  std::cout << "\tmu  = " << bestFitVal << std::endl;
+  std::cout << "\terr  = "<< bestFitErr << std::endl;
+  std::cout << "\tpdf = " << bestFitPdf->GetName() << std::endl;
  
   stepsize=stepsize*bestFitErr;
   if (!fitOk){
@@ -162,15 +162,15 @@ pair<double,map<string,TGraph*> > ProfileMultiplePdfs::profileLikelihood(RooAbsD
   std::cout << "N Points to scan == " << scanValues.size() <<std::endl;
   var->setRange(low-0.5*fabs(low),high+0.5*fabs(high));
   // now perform the scan
-  cout << "Scanning...." << endl;
+  std::cout << "Scanning...." << std::endl;
   for (map<string,pair<RooAbsPdf*,float> >::iterator m=listOfPdfs.begin(); m!=listOfPdfs.end(); m++) { 
     RooAbsPdf *pdf = m->second.first;
-    cout << "\t pdf " << distance(listOfPdfs.begin(),m) << "/" << listOfPdfs.size() << " (" << pdf->GetName() << ")" << endl;
+    std::cout << "\t pdf " << distance(listOfPdfs.begin(),m) << "/" << listOfPdfs.size() << " (" << pdf->GetName() << ")" << std::endl;
     TGraph *thisNLL = new TGraph();
     int p=0;
     for (std::vector<float>::iterator vit = scanValues.begin();vit!=scanValues.end();vit++){
       float v = *vit;
-      cout << Form("\t%5.1f%%\r",100.*(v-low)/(high-low)) << flush;
+      std::cout << Form("\t%5.1f%%\r",100.*(v-low)/(high-low)) << flush;
       RooArgSet *params = (RooArgSet*)pdf->getParameters(*var);
       setValues(mapOfValues,params);
       var->setConstant(false);
@@ -192,7 +192,7 @@ pair<double,map<string,TGraph*> > ProfileMultiplePdfs::profileLikelihood(RooAbsD
       }
       p++;
     }
-    cout << endl;
+    std::cout << std::endl;
     thisNLL->SetName(Form("minnll_%s_%s",pdf->GetName(),data->GetName()));
     minNlls.insert(pair<string,TGraph*>(pdf->GetName(),thisNLL));
   }
@@ -213,7 +213,7 @@ pair<double,map<string,TGraph*> > ProfileMultiplePdfs::computeEnvelope(pair<doub
     map<string,TGraph*>::iterator fIt=minNlls.begin();
     npoints=fIt->second->GetN();
     if (fIt->second->GetN()!=it->second->GetN()) {
-      cerr << "ERROR -- npoints in graphs do not match: " << fIt->first << " and " << it->second << endl;
+      cerr << "ERROR -- npoints in graphs do not match: " << fIt->first << " and " << it->second << std::endl;
       exit(1);
     }
   }
@@ -226,7 +226,7 @@ pair<double,map<string,TGraph*> > ProfileMultiplePdfs::computeEnvelope(pair<doub
     for (map<string,TGraph*>::iterator mIt=minNlls.begin(); mIt!=minNlls.end(); mIt++){
       // find nBkgParams in pdf
       if (listOfPdfs.find(mIt->first)==listOfPdfs.end()){
-        cerr << "ERROR - pdf " << mIt->first << " not found in list of pdfs" << endl;
+        cerr << "ERROR - pdf " << mIt->first << " not found in list of pdfs" << std::endl;
         exit(1);
       }
       // subtract 4 = (mass,mu,bkgYield)
@@ -269,7 +269,7 @@ pair<double,map<string,TGraph*> > ProfileMultiplePdfs::computeEnvelope(pair<doub
     for (map<string,TGraph*>::iterator mIt=minNlls.begin(); mIt!=minNlls.end(); mIt++){
       // find nBkgParams in pdf
       if (listOfPdfs.find(mIt->first)==listOfPdfs.end()){
-        cerr << "ERROR - pdf " << mIt->first << " not found in list of pdfs" << endl;
+        cerr << "ERROR - pdf " << mIt->first << " not found in list of pdfs" << std::endl;
         exit(1);
       }
       // subtract 4 = (mass,mu,bkgYield)
@@ -320,11 +320,11 @@ map<string,TGraph*> ProfileMultiplePdfs::profileLikelihoodEnvelope(RooAbsData *d
       }
     }
   }
-  cout << "Best fit at:" << endl;
-  cout << "\tnll = " << globalMinNLL << endl;
-  cout << "\tmu  = " << bestFitVal << endl;
-  cout << "\terr  = "<< bestFitErr << endl;
-  cout << "\tpdf = " << bestFitPdf->GetName() << endl;
+  std::cout << "Best fit at:" << std::endl;
+  std::cout << "\tnll = " << globalMinNLL << std::endl;
+  std::cout << "\tmu  = " << bestFitVal << std::endl;
+  std::cout << "\terr  = "<< bestFitErr << std::endl;
+  std::cout << "\tpdf = " << bestFitPdf->GetName() << std::endl;
 
   stepsize=stepsize*bestFitErr;
 
@@ -397,14 +397,14 @@ map<string,TGraph*> ProfileMultiplePdfs::profileLikelihoodEnvelope(RooAbsData *d
   double *x = globalNLL->GetX();
   double *y = globalNLL->GetY();
   int locmin = TMath::LocMin(n,y);
-  cout << "Min of graph at x=" << x[locmin] << " y=" << y[locmin] << endl;  
+  std::cout << "Min of graph at x=" << x[locmin] << " y=" << y[locmin] << std::endl;  
   return minNlls;
 }
 
 void ProfileMultiplePdfs::plot(map<string,TGraph*> minNlls, string fname){
   
   if (minNlls.find("envelope")==minNlls.end()){
-    cerr << "ERROR - envelope graph not found in map minNlls" << endl;
+    cerr << "ERROR - envelope graph not found in map minNlls" << std::endl;
     exit(1);
   }
   else {
@@ -443,16 +443,16 @@ void ProfileMultiplePdfs::plot(map<string,TGraph*> minNlls, string fname){
 void ProfileMultiplePdfs::print(map<string,TGraph*> minNlls, float low, float high, float stepsize){
   
   for (map<string,TGraph*>::iterator it=minNlls.begin(); it!=minNlls.end(); it++){
-    cout << Form("%8s  ",it->first.c_str());
+    std::cout << Form("%8s  ",it->first.c_str());
   }
-  cout << endl;
+  std::cout << std::endl;
   for (float v=low; v<(high+stepsize); v+=stepsize){
-    cout << Form("%2.2f  ",v);
+    std::cout << Form("%2.2f  ",v);
     for (map<string,TGraph*>::iterator it=minNlls.begin(); it!=minNlls.end(); it++){
-      cout << Form("%2.4f  ",it->second->Eval(v));
+      std::cout << Form("%2.4f  ",it->second->Eval(v));
     }
-    cout << endl;
-    cout << "Best fit = " << this->getBestFitPdf(v)->GetName() << endl;
+    std::cout << std::endl;
+    std::cout << "Best fit = " << this->getBestFitPdf(v)->GetName() << std::endl;
   }
   
 }
@@ -668,7 +668,7 @@ pair<double,pair<double,double> > ProfileMultiplePdfs::getMinAndErrorLinear(TGra
   if (graph->GetN()==0) {
     if (safemode) return failedResult;
     else {
-			cout << "This graph has no points" << endl;
+			std::cout << "This graph has no points" << std::endl;
 			exit(1);
 		}
   }
@@ -695,7 +695,7 @@ pair<double,pair<double,double> > ProfileMultiplePdfs::getMinAndErrorLinear(TGra
   if (!lowPoints || !highPoints) {
     //if (safemode) return failedResult;
     if (!safemode){ //else {	
-			cout << "There aren't enough points" << endl;
+			std::cout << "There aren't enough points" << std::endl;
 			exit(1);
 		}
   }
@@ -776,7 +776,7 @@ pair<double,pair<double,double> > ProfileMultiplePdfs::getMinAndError(TGraph *gr
   if (graph->GetN()==0) {
     if (safemode) return failedResult;
     else {
-			cout << "This graph has no points" << endl;
+			std::cout << "This graph has no points" << std::endl;
 			exit(1);
 		}
   }
@@ -796,7 +796,7 @@ pair<double,pair<double,double> > ProfileMultiplePdfs::getMinAndError(TGraph *gr
   if (!minPoints || !lowPoints || !highPoints) {
     if (safemode) return failedResult;
     else {	
-			cout << "There aren't enough points" << endl;
+			std::cout << "There aren't enough points" << std::endl;
 			exit(1);
 		}
   }

@@ -73,8 +73,8 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("-i","--infilename", help="Input file (binned signal from flashgg)")
 parser.add_option("-o","--outfilename",default="cms_hgg_datacard.txt",help="Name of card to print (default: %default)")
-parser.add_option("-p","--procs",default="ggh,vbf,wh,zh,tth",help="String list of procs (default: %default)")
-parser.add_option("-c","--cats",default="UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,UntaggedTag_3,UntaggedTag_4,VBFTag_0,VBFTag_1,VBFTag_2",help="Flashgg Categories (default: %default)")
+parser.add_option("-p","--procs",default="ggh,vbf",help="String list of procs (default: %default)")
+parser.add_option("-c","--cats",default="UntaggedTag_0,UntaggedTag_1,UntaggedTag_2,VBFTag_0",help="Flashgg Categories (default: %default)")
 parser.add_option("--photonCatScales",default="HighR9EE,LowR9EE,HighR9EB,LowR9EB",help="String list of photon scale nuisance names - WILL NOT correlate across years (default: %default)")
 parser.add_option("--photonCatScalesCorr",default="MaterialCentral,MaterialForward",help="String list of photon scale nuisance names - WILL correlate across years (default: %default)")
 parser.add_option("--photonCatSmears",default="HighR9EE,LowR9EE,HighR9EBRho,LowR9EBRho,HighR9EBPhi,LowR9EBPhi",help="String list of photon smearing nuisance names - WILL NOT correlate across years (default: %default)")
@@ -83,13 +83,13 @@ parser.add_option("--globalScales",default="NonLinearity:0.001,Geant4:0.0005,Lig
 parser.add_option("--globalScalesCorr",default="",help="String list of global scale nuisances names with value separated by a \':\' - WILL correlate across years (default: %default)")
 parser.add_option("--toSkip",default="",help="proc:cat which are to skipped e.g ggH:11,qqH:12 etc. (default: %default)")
 parser.add_option("--theoryNormFactors",default="", help="if provided, will apply normalisation weights per process and per PDF, QCD Scale and alphaS weight.")
-parser.add_option("--isMultiPdf",default=False,action="store_true")
+parser.add_option("--isMultiPdf",default=True,action="store_true")
 parser.add_option("--submitSelf",default=False,action="store_true",help="Tells script to submit itself to the batch")
 parser.add_option("--justThisSyst",default="",help="Only calculate the line corresponding to thsi systematic")
 parser.add_option("--simplePdfWeights",default=False,action="store_true",help="Condense pdfWeight systematics into 1 line instead of full shape systematic" )
 parser.add_option("--scaleFactors",help="Scale factor for spin model pass as e.g. gg_grav:1.351,qq_grav:1.027")
 parser.add_option("--quadInterpolate",type="int",default=0,help="Do a quadratic interpolation of flashgg templates back to 1 sigma from this sigma. 0 means off (default: %default)")
-parser.add_option("--mass",type="int",default=125,help="Mass at which to calculate the systematic variations (default: %default)")
+parser.add_option("--mass",type="int",default=100,help="Mass at which to calculate the systematic variations (default: %default)")
 (options,args)=parser.parse_args()
 allSystList=[]
 if options.submitSelf :
@@ -346,6 +346,7 @@ def getFlashggLineTheoryWeights(proc,cat,name,i,asymmetric):
   weight_sumW = inWS.var("sumW") 
   #data_nominal = inWS.data("%s_%d_13TeV_%s"%(proc,options.mass,cat))
   data_nominal= inWS.data("%s_%d_13TeV_%s_pdfWeights"%(proc,options.mass,cat))
+  data_nominal.Print()
   data_nominal_sum = data_nominal.sumEntries()
   if (data_nominal_sum <= 0.):
       print "[WARNING] This dataset has 0 or negative sum of weight. Systematic calulcxation meaningless, so list as '- '"
@@ -444,13 +445,13 @@ def getFlashggLineTheoryEnvelope(proc,cat,name,details):
   indices=details[0:-1] # skip last entry whcuh is text specifying the treatment of uncertainty eg "replicas"
   histograms=[]
   h_nominal =None
-  nBins=80
+  nBins=110
   
   for iReplica in indices:
     data_nominal = inWS.data("%s_%d_13TeV_%s"%(proc,options.mass,cat)) #FIXME
     data_nominal_num = data_nominal.numEntries()
-    data_new_h = r.TH1F("h_%d"%iReplica,"h_%d"%iReplica,nBins,100,180);
-    data_nom_h = r.TH1F("h_nom_%d"%iReplica,"h_nom_%d"%iReplica,nBins,100,180);
+    data_new_h = r.TH1F("h_%d"%iReplica,"h_%d"%iReplica,nBins,65,110);
+    data_nom_h = r.TH1F("h_nom_%d"%iReplica,"h_nom_%d"%iReplica,nBins,65,110);
     mass = inWS.var("CMS_hgg_mass")
     weight = r.RooRealVar("weight","weight",0)
     weight_new = inWS.var("%s_%d"%(name,iReplica))
@@ -463,7 +464,7 @@ def getFlashggLineTheoryEnvelope(proc,cat,name,details):
     zeroWeightEvents=0.;
     for i in range(0,int(data_nominal.numEntries())):
       mass.setVal(data_nominal.get(i).getRealValue("CMS_hgg_mass"))
-      mass.setBins(100)
+      mass.setBins(110)
       w_nominal =data_nominal.weight()
       w_new = theoryNormFactor*data_nominal.get(i).getRealValue("%s_%d"%(name,iReplica))
       w_central = data_nominal.get(i).getRealValue("scaleWeight_0")
@@ -487,8 +488,8 @@ def getFlashggLineTheoryEnvelope(proc,cat,name,details):
     histograms.append(data_new_h)
     if (h_nominal==None) : h_nominal=data_nom_h
   
-  h_min = r.TH1F("h_min","h_min",nBins,100,180);
-  h_max = r.TH1F("h_max","h_max",nBins,100,180);
+  h_min = r.TH1F("h_min","h_min",nBins,65,120);
+  h_max = r.TH1F("h_max","h_max",nBins,65,120);
   array ={}
   for iBin in range(0, h_min.GetNbinsX()): 
     array[iBin]=[]

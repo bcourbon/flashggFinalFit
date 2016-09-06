@@ -72,7 +72,7 @@ void OptionParser(int argc, char *argv[]){
 		("help,h",                                                                                "Show help")
 		("infilename,i", po::value<string>(&filename_),                                           "Input file name")
 		("outfilename,o", po::value<string>(&outfilename_),                                           "Output file name")
-		("mass,m", po::value<int>(&m_hyp_)->default_value(125),                                    "Mass to run at")
+		("mass,m", po::value<int>(&m_hyp_)->default_value(100),                                    "Mass to run at")
 		("sqrts", po::value<int>(&sqrts_)->default_value(13),                                    "CoM energy")
 		("binning", po::value<int>(&binning_)->default_value(70),                                    "CoM energy")
 		("procs,p", po::value<string>(&procString_)->default_value("ggh,vbf,wh,zh,tth"),          "Processes")
@@ -82,7 +82,7 @@ void OptionParser(int argc, char *argv[]){
 		("doCrossCheck",	po::value<bool>(&doCrossCheck_)->default_value(false),													"output additional details")
 		("verbose",	po::value<bool>(&verbose_)->default_value(false),													"output additional details")
 		("markNegativeBins",	po::value<bool>(&markNegativeBins_)->default_value(false),													" show with red arrow if a bin has a negative total value")
-		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("DiPhotonUntaggedCategory_0,DiPhotonUntaggedCategory_1,DiPhotonUntaggedCategory_2,DiPhotonUntaggedCategory_3,DiPhotonUntaggedCategory_4,VBFTag_0,VBFTag_1,VBFTag_2"),       "Flashgg category names to consider")
+		("flashggCats,f", po::value<string>(&flashggCatsStr_)->default_value("UntaggedCategory_0,UntaggedCategory_1,UntaggedCategory_2,VBFTag_0"),       "Flashgg category names to consider")
 		;
 
 	po::options_description desc2("Options kept for backward compatibility");
@@ -191,7 +191,7 @@ void printInfo(map<string,RooDataSet*> data, map<string,RooAddPdf*> pdfs){
 
 }
 
-pair<double,double> getEffSigma(RooRealVar *mass, RooAbsPdf *pdf, double wmin=110., double wmax=130., double step=0.002, double epsilon=1.e-4){
+pair<double,double> getEffSigma(RooRealVar *mass, RooAbsPdf *pdf, double wmin=90., double wmax=110., double step=0.002, double epsilon=1.e-4){
 
 	RooAbsReal *cdf = pdf->createCdf(RooArgList(*mass));
 	cout << "Computing effSigma...." << endl;
@@ -231,7 +231,7 @@ pair<double,double> getEffSigma(RooRealVar *mass, RooAbsPdf *pdf, double wmin=11
 }
 
 // get effective sigma from finely binned histogram
-pair<double,double> getEffSigBinned(RooRealVar *mass, RooAbsPdf *pdf, double wmin=110., double wmax=130.,int stepsize=1 ){
+pair<double,double> getEffSigBinned(RooRealVar *mass, RooAbsPdf *pdf, double wmin=90., double wmax=110.,int stepsize=1 ){
 
 	int nbins = int((wmax-wmin)/0.001/double(stepsize));
 	TH1F *h = new TH1F("h","h",nbins,wmin,wmax);
@@ -294,7 +294,7 @@ pair<double,double> getEffSigBinned(RooRealVar *mass, RooAbsPdf *pdf, double wmi
 }
 
 // get FWHHM
-vector<double> getFWHM(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, double wmin=110., double wmax=130., double step=0.0004) {
+vector<double> getFWHM(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, double wmin=90., double wmax=110., double step=0.0004) {
 
 	cout << "Computing FWHM...." << endl;
 	double nbins = (wmax-wmin)/step;
@@ -321,7 +321,7 @@ vector<double> getFWHM(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, doubl
 	return result;
 }
 
-void performClosure(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, string closurename, double wmin=110., double wmax=130., double slow=110., double shigh=130., double step=0.002) {
+void performClosure(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, string closurename, double wmin=90., double wmax=110., double slow=90., double shigh=110., double step=0.002) {
 
 	// plot to perform closure test
 	cout << "Performing closure test... for " << closurename << endl; 
